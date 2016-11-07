@@ -1,6 +1,7 @@
 package test;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +16,11 @@ import org.wikidata.wdtk.dumpfiles.EntityTimerProcessor;
 import org.wikidata.wdtk.dumpfiles.MwLocalDumpFile;
 import org.wikidata.wdtk.examples.ExampleHelpers;
 
-import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TestProcessor implements EntityDocumentProcessor {
@@ -28,14 +31,21 @@ public class TestProcessor implements EntityDocumentProcessor {
 
 	private static final String JSON_OUTPUT_FILE = "results/index_data.json";
 	
-	private static File outputFile;
-
 	int itemCount = 0;
+
+	private static JsonGenerator jsonGen;
 
 	public static void main(String[] args) throws IOException {
 		ExampleHelpers.configureLogging();
 		
-		outputFile = new File(JSON_OUTPUT_FILE);
+		
+		// JSON output
+		JsonFactory jsonFactory = new JsonFactory(); 
+		FileOutputStream file = new FileOutputStream(new File(JSON_OUTPUT_FILE));
+		jsonGen = jsonFactory.createGenerator(file, JsonEncoding.UTF8);
+		jsonGen.setCodec(new ObjectMapper());
+		jsonGen.setPrettyPrinter(new MinimalPrettyPrinter(""));
+
 		
 		TestProcessor processor = new TestProcessor();
 		
@@ -92,16 +102,9 @@ public class TestProcessor implements EntityDocumentProcessor {
 		
 		ObjectMapper objectMapper = new ObjectMapper();
 		
-		
-
 		try {
-			objectMapper.writeValue(outputFile, indexEntity); // TODO am Ende steht nur das letzte Objekt in der Datei, scheint immer wieder überschrieben zu werden
-		} catch (JsonGenerationException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (JsonMappingException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			jsonGen.writeObject(indexEntity);
+			jsonGen.writeRaw('\n');
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
