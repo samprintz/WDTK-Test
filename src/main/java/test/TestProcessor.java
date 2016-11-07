@@ -1,9 +1,9 @@
 package test;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
@@ -15,16 +15,27 @@ import org.wikidata.wdtk.dumpfiles.EntityTimerProcessor;
 import org.wikidata.wdtk.dumpfiles.MwLocalDumpFile;
 import org.wikidata.wdtk.examples.ExampleHelpers;
 
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class TestProcessor implements EntityDocumentProcessor {
 
 	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-100.json.gz";
 	// private final static String DUMP_FILE = "C:/Daten/Eclipse/wdtk-parent/wdtk-examples/dumpfiles/wikidatawiki/json-20161031/20161031.json.gz";
 	// private final static String DUMP_FILE = "./src/main/resources/sample-dump-20150815.json.gz";
 
+	private static final String JSON_OUTPUT_FILE = "results/index_data.json";
+	
+	private static File outputFile;
+
 	int itemCount = 0;
 
 	public static void main(String[] args) throws IOException {
 		ExampleHelpers.configureLogging();
+		
+		outputFile = new File(JSON_OUTPUT_FILE);
 		
 		TestProcessor processor = new TestProcessor();
 		
@@ -52,26 +63,58 @@ public class TestProcessor implements EntityDocumentProcessor {
 
 	public void processItemDocument(ItemDocument itemDocument) {
 		this.itemCount++;
+
 		
 		//TODO Nach GND filtern?
 		
-		String id = itemDocument.getItemId().getId();
-		String labelDe = itemDocument.findLabel("de");
+		String language = "de";
+		IndexEntity indexEntity = new IndexEntity();
 		
- 
-		List<MonolingualTextValue> aliasesDe = itemDocument.getAliases().get("de");
+		indexEntity.id = itemDocument.getItemId().getId();
 		
-		System.out.println(id + " " + labelDe);
+		
+		String label = itemDocument.findLabel(language);
+		if (label != null) {
+			indexEntity.labels.put(language, label);
+		}
+
+		List<MonolingualTextValue> aliasesDe = itemDocument.getAliases().get(language);
+
+		
 		
 		if (aliasesDe != null) {
+			List<String> aliases = new ArrayList<String>();
 			for (MonolingualTextValue alias : aliasesDe) {
-				System.out.println(alias.getText());
+				aliases.add(alias.getText());
 			}
+			indexEntity.aliases.put(language, aliases);
 		}
 		
+		ObjectMapper objectMapper = new ObjectMapper();
 		
 		
-		
+
+		try {
+			objectMapper.writeValue(outputFile, indexEntity); // TODO am Ende steht nur das letzte Objekt in der Datei, scheint immer wieder überschrieben zu werden
+		} catch (JsonGenerationException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (JsonMappingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+		String jsonInString;
+		try {
+			jsonInString = objectMapper.writeValueAsString(indexEntity);
+			System.out.println(jsonInString);
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		// für alle Sprachen!!
 		
 		// Print progress every 100,000 items:
