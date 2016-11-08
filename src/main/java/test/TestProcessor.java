@@ -19,7 +19,6 @@ import org.wikidata.wdtk.examples.ExampleHelpers;
 import com.fasterxml.jackson.core.JsonEncoding;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -69,18 +68,22 @@ public class TestProcessor implements EntityDocumentProcessor {
 	}
 
 	public void processItemDocument(ItemDocument itemDocument) {
+		// TODO für alle Sprachen!!
 		String language = "de";
 		IndexEntity indexEntity = new IndexEntity();
 
+		// ID
 		indexEntity.id = itemDocument.getItemId().getId();
 
+		// Surface forms
+		// Label
 		String label = itemDocument.findLabel(language);
 		if (label != null) {
 			indexEntity.labels.put(language, label);
 		}
 
+		// Aliases
 		List<MonolingualTextValue> aliasesDe = itemDocument.getAliases().get(language);
-
 		if (aliasesDe != null) {
 			List<String> aliases = new ArrayList<String>();
 			for (MonolingualTextValue alias : aliasesDe) {
@@ -89,6 +92,11 @@ public class TestProcessor implements EntityDocumentProcessor {
 			indexEntity.aliases.put(language, aliases);
 		}
 
+		// Statistics
+		int countSitelinks = itemDocument.getSiteLinks().size();
+		indexEntity.statistics.put("sitelinks", countSitelinks);
+
+		// Write in JSON file
 		try {
 			jsonGen.writeObject(indexEntity);
 			jsonGen.writeRaw('\n');
@@ -97,12 +105,11 @@ public class TestProcessor implements EntityDocumentProcessor {
 			e1.printStackTrace();
 		}
 
+		// Print object in JSON style
 		System.out.println(indexEntity.toString());
 
-		// TODO für alle Sprachen!!
-
+		// Update and print progress
 		this.itemCount++;
-		// Print progress every 1,000 items:
 		if (this.itemCount % 1000 == 0) {
 			printStatus();
 		}
