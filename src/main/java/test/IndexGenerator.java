@@ -22,7 +22,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class TestProcessor implements EntityDocumentProcessor {
+public class IndexGenerator implements EntityDocumentProcessor {
 
 	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-1000.json.gz";
 	// private final static String DUMP_FILE =
@@ -65,7 +65,7 @@ public class TestProcessor implements EntityDocumentProcessor {
 		dumpProcessingController.setOfflineMode(true);
 
 		// Instantiale Index Generator and Timer Processor
-		TestProcessor indexGenerator = new TestProcessor();
+		IndexGenerator indexGenerator = new IndexGenerator();
 		dumpProcessingController.registerEntityDocumentProcessor(indexGenerator, null, true);
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
@@ -73,7 +73,7 @@ public class TestProcessor implements EntityDocumentProcessor {
 		entityTimerProcessor.close();
 	}
 
-	public TestProcessor() {
+	public IndexGenerator() {
 
 	}
 
