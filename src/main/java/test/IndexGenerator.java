@@ -3,8 +3,6 @@ package test;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,6 +69,9 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		jsonGen.setCodec(new ObjectMapper());
 		jsonGen.setPrettyPrinter(new MinimalPrettyPrinter(""));
 
+		// TODO Ist noch kein JSON array, schließende Klammer wird irgendwie nicht geschrieben (s.u.)
+		// jsonGen.writeRaw("[");
+
 		// Select dump file
 		MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON, "20161031", "wikidatawiki");
 
@@ -95,6 +96,10 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
 		dumpProcessingController.processDump(mwDumpFile);
+
+		// TODO
+		// jsonGen.writeRaw("]");
+
 		entityTimerProcessor.close();
 
 	}
@@ -136,7 +141,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		// Write in JSON file
 		try {
 			jsonGen.writeObject(indexEntity);
-			jsonGen.writeRaw('\n');
+			jsonGen.writeRaw(",\n");
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
