@@ -26,63 +26,54 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class TestProcessor implements EntityDocumentProcessor {
 
 	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-100.json.gz";
-	// private final static String DUMP_FILE = "C:/Daten/Eclipse/wdtk-parent/wdtk-examples/dumpfiles/wikidatawiki/json-20161031/20161031.json.gz";
-	// private final static String DUMP_FILE = "./src/main/resources/sample-dump-20150815.json.gz";
+	// private final static String DUMP_FILE =
+	// "C:/Daten/Eclipse/wdtk-parent/wdtk-examples/dumpfiles/wikidatawiki/json-20161031/20161031.json.gz";
+	// private final static String DUMP_FILE =
+	// "./src/main/resources/sample-dump-20150815.json.gz";
 
 	private static final String JSON_OUTPUT_FILE = "results/index_data.json";
-	
+
 	int itemCount = 0;
 
 	private static JsonGenerator jsonGen;
 
 	public static void main(String[] args) throws IOException {
 		ExampleHelpers.configureLogging();
-		
-		
-		// JSON output
-		JsonFactory jsonFactory = new JsonFactory(); 
+
+		// Prepare JSON output
+		JsonFactory jsonFactory = new JsonFactory();
 		FileOutputStream file = new FileOutputStream(new File(JSON_OUTPUT_FILE));
 		jsonGen = jsonFactory.createGenerator(file, JsonEncoding.UTF8);
 		jsonGen.setCodec(new ObjectMapper());
 		jsonGen.setPrettyPrinter(new MinimalPrettyPrinter(""));
 
-		
 		TestProcessor processor = new TestProcessor();
-		
-		DumpProcessingController dumpProcessingController = new DumpProcessingController(
-				"wikidatawiki");
+
+		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
 		dumpProcessingController.setOfflineMode(true);
 		dumpProcessingController.registerEntityDocumentProcessor(processor, null, true);
 
 		// Also add a timer that reports some basic progress information:
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
-		dumpProcessingController.registerEntityDocumentProcessor(
-				entityTimerProcessor, null, true);
+		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
 
 		// Select local file and set meta-data:
-		MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON,
-				"20161031", "wikidatawiki");
+		MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON, "20161031", "wikidatawiki");
 		dumpProcessingController.processDump(mwDumpFile);
 
 		entityTimerProcessor.close();
 	}
-	
+
 	public TestProcessor() {
-		
+
 	}
 
 	public void processItemDocument(ItemDocument itemDocument) {
-		this.itemCount++;
-
-		
-		//TODO Nach GND filtern?
-		
 		String language = "de";
 		IndexEntity indexEntity = new IndexEntity();
-		
+
 		indexEntity.id = itemDocument.getItemId().getId();
-		
-		
+
 		String label = itemDocument.findLabel(language);
 		if (label != null) {
 			indexEntity.labels.put(language, label);
@@ -90,8 +81,6 @@ public class TestProcessor implements EntityDocumentProcessor {
 
 		List<MonolingualTextValue> aliasesDe = itemDocument.getAliases().get(language);
 
-		
-		
 		if (aliasesDe != null) {
 			List<String> aliases = new ArrayList<String>();
 			for (MonolingualTextValue alias : aliasesDe) {
@@ -99,9 +88,7 @@ public class TestProcessor implements EntityDocumentProcessor {
 			}
 			indexEntity.aliases.put(language, aliases);
 		}
-		
-		ObjectMapper objectMapper = new ObjectMapper();
-		
+
 		try {
 			jsonGen.writeObject(indexEntity);
 			jsonGen.writeRaw('\n');
@@ -110,25 +97,15 @@ public class TestProcessor implements EntityDocumentProcessor {
 			e1.printStackTrace();
 		}
 
-		String jsonInString;
-		try {
-			jsonInString = objectMapper.writeValueAsString(indexEntity);
-			System.out.println(jsonInString);
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		// für alle Sprachen!!
-		
-		// Print progress every 100,000 items:
+		System.out.println(indexEntity.toString());
+
+		// TODO für alle Sprachen!!
+
+		this.itemCount++;
+		// Print progress every 1,000 items:
 		if (this.itemCount % 1000 == 0) {
 			printStatus();
 		}
-		
-		
-		//TODO Wie kann ich hier Text ausgeben? Dann implementieren, dass hier die Labels zu jeder entity geprintet werden
-		
-		
 	}
 
 	public void processPropertyDocument(PropertyDocument propertyDocument) {
@@ -139,7 +116,6 @@ public class TestProcessor implements EntityDocumentProcessor {
 	 * Prints the current status, time and entity count.
 	 */
 	public void printStatus() {
-		System.out.println("Processed " + this.itemCount
-				+ " items.");
+		System.out.println("Processed " + this.itemCount + " items.");
 	}
 }
