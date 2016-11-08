@@ -23,7 +23,8 @@ public class SitelinksCounter implements EntityDocumentProcessor {
 		sitelinks.putAll(itemDocument.getSiteLinks());
 	}
 
-	public void processPropertyDocument(PropertyDocument propertyDocument) {}
+	public void processPropertyDocument(PropertyDocument propertyDocument) {
+	}
 
 	public int getResult() {
 		return this.sitelinks.size();

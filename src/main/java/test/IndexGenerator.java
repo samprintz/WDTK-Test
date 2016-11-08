@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
@@ -24,15 +25,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class IndexGenerator implements EntityDocumentProcessor {
 
+	/**
+	 * The dump which entites should be processed..
+	 */
 	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-1000.json.gz";
 	// private final static String DUMP_FILE =
 	// "C:/Daten/Eclipse/wdtk-parent/wdtk-examples/dumpfiles/wikidatawiki/json-20161031/20161031.json.gz";
 	// private final static String DUMP_FILE =
 	// "./src/main/resources/sample-dump-20150815.json.gz";
 
+	/**
+	 * The result, the generated Index JSON file, will be saved here.
+	 */
 	private static final String JSON_OUTPUT_FILE = "results/index_data.json";
 
+	private static final List<String> LANGUAGES = Arrays.asList("de", "en", "es", "zh");
+
+	/**
+	 * Incremented with each processed entity. Contains the number of processed
+	 * entities after the dump was processed.
+	 */
 	int itemCount = 0;
+
+	/**
+	 * Filled by the {@link SitelinksCounter} with Number of distinct site links
+	 * in the dump.
+	 */
 	static int distinctSitelinks;
 
 	private static JsonGenerator jsonGen;
@@ -106,7 +124,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 
 		// Statistics
 		double sitelinksAbs = itemDocument.getSiteLinks().size();
-		double sitelinksRel = sitelinksAbs/distinctSitelinks;
+		double sitelinksRel = sitelinksAbs / distinctSitelinks;
 		indexEntity.statistics.put("sitelinksAbs", sitelinksAbs);
 		indexEntity.statistics.put("sitelinksRel", sitelinksRel);
 
@@ -114,9 +132,8 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		try {
 			jsonGen.writeObject(indexEntity);
 			jsonGen.writeRaw('\n');
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+		} catch (IOException ex) {
+			ex.printStackTrace();
 		}
 
 		// Print object in JSON style
@@ -129,7 +146,8 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		}
 	}
 
-	public void processPropertyDocument(PropertyDocument propertyDocument) {}
+	public void processPropertyDocument(PropertyDocument propertyDocument) {
+	}
 
 	/**
 	 * Prints the current status, time and entity count.
