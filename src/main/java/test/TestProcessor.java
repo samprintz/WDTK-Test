@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class TestProcessor implements EntityDocumentProcessor {
 
-	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-100.json.gz";
+	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-1000.json.gz";
 	// private final static String DUMP_FILE =
 	// "C:/Daten/Eclipse/wdtk-parent/wdtk-examples/dumpfiles/wikidatawiki/json-20161031/20161031.json.gz";
 	// private final static String DUMP_FILE =
@@ -46,20 +46,30 @@ public class TestProcessor implements EntityDocumentProcessor {
 		jsonGen.setCodec(new ObjectMapper());
 		jsonGen.setPrettyPrinter(new MinimalPrettyPrinter(""));
 
-		TestProcessor processor = new TestProcessor();
+		// Select dump file
+		MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON, "20161031", "wikidatawiki");
 
+		// Instantiate Dump Processor Controller for Sitelinks Counter
+		DumpProcessingController dumpProcessingControllerCount = new DumpProcessingController("wikidatawiki");
+		dumpProcessingControllerCount.setOfflineMode(true);
+
+		// Instantiate Sitelinks Counter
+		SitelinksCounter sitelinksCounter = new SitelinksCounter();
+		dumpProcessingControllerCount.registerEntityDocumentProcessor(sitelinksCounter, null, true);
+		dumpProcessingControllerCount.processDump(mwDumpFile);
+		sitelinksCounter.printList();
+		System.out.println(sitelinksCounter.getResult());
+
+		// Instantiate Dump Processor Controller for Index Generator
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
 		dumpProcessingController.setOfflineMode(true);
-		dumpProcessingController.registerEntityDocumentProcessor(processor, null, true);
 
-		// Also add a timer that reports some basic progress information:
+		// Instantiale Index Generator and Timer Processor
+		TestProcessor indexGenerator = new TestProcessor();
+		dumpProcessingController.registerEntityDocumentProcessor(indexGenerator, null, true);
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
-
-		// Select local file and set meta-data:
-		MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON, "20161031", "wikidatawiki");
 		dumpProcessingController.processDump(mwDumpFile);
-
 		entityTimerProcessor.close();
 	}
 
