@@ -3,8 +3,12 @@ package test;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
@@ -37,7 +41,8 @@ public class IndexGenerator implements EntityDocumentProcessor {
 	/**
 	 * The result, the generated Index JSON file, will be saved here.
 	 */
-	private static final String JSON_OUTPUT_FILE = "results/index_data.json";
+	private static final String OUTPUT_PATH = "results/";
+	private static final String OUTPUT_FILE = "-index.json";
 
 	private static final List<String> LANGUAGES = Arrays.asList("de", "en", "es", "zh");
 
@@ -60,7 +65,8 @@ public class IndexGenerator implements EntityDocumentProcessor {
 
 		// Prepare JSON output
 		JsonFactory jsonFactory = new JsonFactory();
-		FileOutputStream file = new FileOutputStream(new File(JSON_OUTPUT_FILE));
+		String filepath = OUTPUT_PATH + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + OUTPUT_FILE;
+		FileOutputStream file = new FileOutputStream(new File(filepath));
 		jsonGen = jsonFactory.createGenerator(file, JsonEncoding.UTF8);
 		jsonGen.setCodec(new ObjectMapper());
 		jsonGen.setPrettyPrinter(new MinimalPrettyPrinter(""));
@@ -98,31 +104,28 @@ public class IndexGenerator implements EntityDocumentProcessor {
 	}
 
 	public void processItemDocument(ItemDocument itemDocument) {
-		// TODO für alle Sprachen!!
-		String language = "de";
 		IndexEntity indexEntity = new IndexEntity();
 
 		// ID
 		indexEntity.id = itemDocument.getItemId().getId();
 
 		// Surface forms
-		List<String> surfaceForms = new ArrayList<String>();
-
-		// Label
-		String label = itemDocument.findLabel(language);
-		if (label != null) {
-			surfaceForms.add(label);
-		}
-
-		// Aliases
-		List<MonolingualTextValue> aliases = itemDocument.getAliases().get(language);
-		if (aliases != null) {
-			for (MonolingualTextValue alias : aliases) {
-				surfaceForms.add(alias.getText());
+		for (String language : LANGUAGES) {
+			List<String> surfaceForms = new ArrayList<String>();
+			// Label
+			String label = itemDocument.findLabel(language);
+			if (label != null) {
+				surfaceForms.add(label);
 			}
+			// Aliases
+			List<MonolingualTextValue> aliases = itemDocument.getAliases().get(language);
+			if (aliases != null) {
+				for (MonolingualTextValue alias : aliases) {
+					surfaceForms.add(alias.getText());
+				}
+			}
+			indexEntity.surfaceForms.put(language, surfaceForms);
 		}
-
-		indexEntity.surfaceForms.put(language, surfaceForms);
 
 		// Statistics
 		double sitelinksAbs = itemDocument.getSiteLinks().size();
