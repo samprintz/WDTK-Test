@@ -13,15 +13,12 @@ public class IndexEntity {
 
 	public String id;
 
-	public HashMap<String, String> labels;
-
-	public HashMap<String, List<String>> aliases;
+	public HashMap<String, List<String>> surfaceForms;
 
 	public HashMap<String, Double> statistics;
 
 	public IndexEntity() {
-		this.labels = new HashMap<String, String>();
-		this.aliases = new HashMap<String, List<String>>();
+		this.surfaceForms = new HashMap<String, List<String>>();
 		this.statistics = new HashMap<String, Double>();
 	}
 

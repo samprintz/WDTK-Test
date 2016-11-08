@@ -106,21 +106,23 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		indexEntity.id = itemDocument.getItemId().getId();
 
 		// Surface forms
+		List<String> surfaceForms = new ArrayList<String>();
+
 		// Label
 		String label = itemDocument.findLabel(language);
 		if (label != null) {
-			indexEntity.labels.put(language, label);
+			surfaceForms.add(label);
 		}
 
 		// Aliases
-		List<MonolingualTextValue> aliasesDe = itemDocument.getAliases().get(language);
-		if (aliasesDe != null) {
-			List<String> aliases = new ArrayList<String>();
-			for (MonolingualTextValue alias : aliasesDe) {
-				aliases.add(alias.getText());
+		List<MonolingualTextValue> aliases = itemDocument.getAliases().get(language);
+		if (aliases != null) {
+			for (MonolingualTextValue alias : aliases) {
+				surfaceForms.add(alias.getText());
 			}
-			indexEntity.aliases.put(language, aliases);
 		}
+
+		indexEntity.surfaceForms.put(language, surfaceForms);
 
 		// Statistics
 		double sitelinksAbs = itemDocument.getSiteLinks().size();
