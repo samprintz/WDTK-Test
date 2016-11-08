@@ -17,12 +17,12 @@ public class IndexEntity {
 
 	public HashMap<String, List<String>> aliases;
 
-	public HashMap<String, Integer> statistics;
+	public HashMap<String, Double> statistics;
 
 	public IndexEntity() {
 		this.labels = new HashMap<String, String>();
 		this.aliases = new HashMap<String, List<String>>();
-		this.statistics = new HashMap<String, Integer>();
+		this.statistics = new HashMap<String, Double>();
 	}
 
 	public String toString() {

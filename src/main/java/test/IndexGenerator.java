@@ -33,6 +33,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 	private static final String JSON_OUTPUT_FILE = "results/index_data.json";
 
 	int itemCount = 0;
+	static int distinctSitelinks;
 
 	private static JsonGenerator jsonGen;
 
@@ -57,8 +58,8 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		SitelinksCounter sitelinksCounter = new SitelinksCounter();
 		dumpProcessingControllerCount.registerEntityDocumentProcessor(sitelinksCounter, null, true);
 		dumpProcessingControllerCount.processDump(mwDumpFile);
-		sitelinksCounter.printList();
-		System.out.println(sitelinksCounter.getResult());
+		distinctSitelinks = sitelinksCounter.getResult();
+		// sitelinksCounter.printList();
 
 		// Instantiate Dump Processor Controller for Index Generator
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
@@ -71,6 +72,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
 		dumpProcessingController.processDump(mwDumpFile);
 		entityTimerProcessor.close();
+
 	}
 
 	public IndexGenerator() {
@@ -103,8 +105,10 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		}
 
 		// Statistics
-		int countSitelinks = itemDocument.getSiteLinks().size();
-		indexEntity.statistics.put("sitelinks", countSitelinks);
+		double sitelinksAbs = itemDocument.getSiteLinks().size();
+		double sitelinksRel = sitelinksAbs/distinctSitelinks;
+		indexEntity.statistics.put("sitelinksAbs", sitelinksAbs);
+		indexEntity.statistics.put("sitelinksRel", sitelinksRel);
 
 		// Write in JSON file
 		try {
@@ -125,9 +129,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		}
 	}
 
-	public void processPropertyDocument(PropertyDocument propertyDocument) {
-
-	}
+	public void processPropertyDocument(PropertyDocument propertyDocument) {}
 
 	/**
 	 * Prints the current status, time and entity count.

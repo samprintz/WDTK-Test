@@ -1,6 +1,9 @@
 package test;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
@@ -9,28 +12,34 @@ import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 import org.wikidata.wdtk.datamodel.interfaces.SiteLink;
 
 public class SitelinksCounter implements EntityDocumentProcessor {
-	
-	public Map<String, SiteLink> siteLinks;
-	
+
+	private Map<String, SiteLink> sitelinks;
+
 	public SitelinksCounter() {
-		this.siteLinks = new HashMap<String, SiteLink>();
+		this.sitelinks = new HashMap<String, SiteLink>();
 	}
 
 	public void processItemDocument(ItemDocument itemDocument) {
-		siteLinks.putAll(itemDocument.getSiteLinks());
+		sitelinks.putAll(itemDocument.getSiteLinks());
 	}
 
-	public void processPropertyDocument(PropertyDocument propertyDocument) {
-		// TODO Auto-generated method stub
+	public void processPropertyDocument(PropertyDocument propertyDocument) {}
 
-	}
-	
 	public int getResult() {
-		return this.siteLinks.size();
+		return this.sitelinks.size();
 	}
-	
+
 	public void printList() {
-		System.out.println(siteLinks.toString().replaceAll(",", "\n"));
+		Collection<String> unsorted = sitelinks.keySet();
+		List<String> sorted = SitelinksCounter.asSortedList(unsorted);
+		// System.out.println(sorted.toString().replaceAll(",", ",\n"));
+		System.out.println(sorted.toString());
+	}
+
+	public static <T extends Comparable<? super T>> List<T> asSortedList(Collection<T> c) {
+		List<T> list = new ArrayList<T>(c);
+		java.util.Collections.sort(list);
+		return list;
 	}
 
 }
