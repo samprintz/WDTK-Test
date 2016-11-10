@@ -5,9 +5,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
@@ -41,8 +41,6 @@ public class IndexGenerator implements EntityDocumentProcessor {
 	 */
 	private static final String OUTPUT_PATH = "results/";
 	private static final String OUTPUT_FILE = "-index.json";
-
-	private static final List<String> LANGUAGES = Arrays.asList("de", "en", "es", "zh");
 
 	/**
 	 * Incremented with each processed entity. Contains the number of processed
@@ -115,7 +113,8 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		indexEntity.id = itemDocument.getItemId().getId();
 
 		// Surface forms
-		for (String language : LANGUAGES) {
+		Set<String> languages = itemDocument.getLabels().keySet();
+		for (String language : languages) {
 			List<String> surfaceForms = new ArrayList<String>();
 			// Label
 			String label = itemDocument.findLabel(language);
