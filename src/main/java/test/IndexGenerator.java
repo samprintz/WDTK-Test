@@ -56,7 +56,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 	 * Filled by the {@link SitelinksCounter} with Number of distinct site links
 	 * in the dump.
 	 */
-	static int distinctSitelinks;
+	private static int distinctSitelinks;
 
 	private static JsonGenerator jsonGen;
 
@@ -79,15 +79,23 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON, "20161031", "wikidatawiki");
 
 		// Instantiate Dump Processor Controller for Sitelinks Counter
-		DumpProcessingController dumpProcessingControllerCount = new DumpProcessingController("wikidatawiki");
-		dumpProcessingControllerCount.setOfflineMode(true);
-
+		DumpProcessingController dumpProcessingControllerCountSL = new DumpProcessingController("wikidatawiki");
+		dumpProcessingControllerCountSL.setOfflineMode(true);
 		// Instantiate Sitelinks Counter
 		SitelinksCounter sitelinksCounter = new SitelinksCounter();
-		dumpProcessingControllerCount.registerEntityDocumentProcessor(sitelinksCounter, null, true);
-		dumpProcessingControllerCount.processDump(mwDumpFile);
+		dumpProcessingControllerCountSL.registerEntityDocumentProcessor(sitelinksCounter, null, true);
+		dumpProcessingControllerCountSL.processDump(mwDumpFile);
 		distinctSitelinks = sitelinksCounter.getResult();
 		// sitelinksCounter.printList();
+
+		// Instantiate Dump Processor Controller for SurfaceForms Counter
+		DumpProcessingController dumpProcessingControllerCountSF = new DumpProcessingController("wikidatawiki");
+		dumpProcessingControllerCountSF.setOfflineMode(true);
+		// Instantiate SurfaceForms Counter
+		SurfaceFormsCounter surfaceFormsCounter = new SurfaceFormsCounter();
+		dumpProcessingControllerCountSF.registerEntityDocumentProcessor(surfaceFormsCounter, null, true);
+		dumpProcessingControllerCountSF.processDump(mwDumpFile);
+		surfaceFormsCounter.printStatus();
 
 		// Instantiate Dump Processor Controller for Index Generator
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
@@ -116,7 +124,8 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		IndexEntity indexEntity = retrieveIndexEntity(itemDocument);
 		writeToIndex(indexEntity);
 
-		System.out.println(indexEntity.toString());
+		// TODO
+		// System.out.println(indexEntity.toString());
 
 		// Update and print progress
 		this.itemCount++;
@@ -190,7 +199,8 @@ public class IndexGenerator implements EntityDocumentProcessor {
 	 */
 	private HashMap<String, List<String>> retrieveSurfaceForms(ItemDocument itemDocument) {
 		HashMap<String, List<String>> surfaceForms = new HashMap<String, List<String>>();
-		int surfaceFormsCount = 0;
+		// TODO Als Statisik abspeichern
+//		int surfaceFormsCount = 0;
 
 		// Get for all available languages
 		Set<String> languages = itemDocument.getLabels().keySet();
@@ -201,7 +211,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 			String label = itemDocument.findLabel(language);
 			if (label != null) {
 				surfaceFormsForLanguage.add(label);
-				surfaceFormsCount++;
+//				surfaceFormsCount++;
 			}
 
 			// Aliases
@@ -209,7 +219,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 			if (aliases != null) {
 				for (MonolingualTextValue alias : aliases) {
 					surfaceFormsForLanguage.add(alias.getText());
-					surfaceFormsCount++;
+//					surfaceFormsCount++;
 				}
 			}
 
@@ -217,7 +227,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 		}
 
 		// TODO
-		System.out.println(surfaceFormsCount);
+		// System.out.println(surfaceFormsCount);
 
 		return surfaceForms;
 	}
@@ -229,7 +239,8 @@ public class IndexGenerator implements EntityDocumentProcessor {
 			if (entityDocument instanceof ItemDocument) {
 				IndexEntity indexEntity = retrieveIndexEntity((ItemDocument) entityDocument);
 				writeToIndex(indexEntity);
-				System.out.println(indexEntity.toString());
+				// TODO
+				// System.out.println(indexEntity.toString());
 			}
 		} catch (MediaWikiApiErrorException e) {
 			e.printStackTrace();

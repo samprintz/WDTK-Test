@@ -30,7 +30,7 @@ public class SitelinksCounter implements EntityDocumentProcessor {
 		return this.sitelinks.size();
 	}
 
-	public void printList() {
+	public void printSortedList() {
 		Collection<String> unsorted = sitelinks.keySet();
 		List<String> sorted = SitelinksCounter.asSortedList(unsorted);
 		// System.out.println(sorted.toString().replaceAll(",", ",\n"));
@@ -42,5 +42,4 @@ public class SitelinksCounter implements EntityDocumentProcessor {
 		java.util.Collections.sort(list);
 		return list;
 	}
-
 }
