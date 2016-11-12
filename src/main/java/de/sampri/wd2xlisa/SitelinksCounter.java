@@ -1,4 +1,4 @@
-package test;
+package de.sampri.wd2xlisa;
 
 import java.util.ArrayList;
 import java.util.Collection;

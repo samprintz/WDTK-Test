@@ -1,4 +1,4 @@
-package test;
+package de.sampri.wd2xlisa;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -200,7 +200,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 	private HashMap<String, List<String>> retrieveSurfaceForms(ItemDocument itemDocument) {
 		HashMap<String, List<String>> surfaceForms = new HashMap<String, List<String>>();
 		// TODO Als Statisik abspeichern
-//		int surfaceFormsCount = 0;
+		// int surfaceFormsCount = 0;
 
 		// Get for all available languages
 		Set<String> languages = itemDocument.getLabels().keySet();
@@ -211,7 +211,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 			String label = itemDocument.findLabel(language);
 			if (label != null) {
 				surfaceFormsForLanguage.add(label);
-//				surfaceFormsCount++;
+				// surfaceFormsCount++;
 			}
 
 			// Aliases
@@ -219,7 +219,7 @@ public class IndexGenerator implements EntityDocumentProcessor {
 			if (aliases != null) {
 				for (MonolingualTextValue alias : aliases) {
 					surfaceFormsForLanguage.add(alias.getText());
-//					surfaceFormsCount++;
+					// surfaceFormsCount++;
 				}
 			}
 

@@ -1,4 +1,4 @@
-package test;
+package de.sampri.wd2xlisa;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		long countDistinctSurfaceForms = 0;
 	}
 
-	HashMap<String, Integer> surfaceForms = new HashMap<>();
+	HashMap<String, Integer> surfaceForms = new HashMap<String, Integer>();
 
 	SurfaceFormStatistics stat = new SurfaceFormStatistics();
 
