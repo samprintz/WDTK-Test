@@ -1,12 +1,7 @@
 package de.sampri.wd2xlisa;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -18,11 +13,7 @@ import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 import org.wikidata.wdtk.wikibaseapi.WikibaseDataFetcher;
 import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 
-import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class IndexGeneratorByEntity implements IndexGenerator {
 
@@ -38,15 +29,10 @@ public class IndexGeneratorByEntity implements IndexGenerator {
 	 */
 	int distinctSitelinks;
 
-	/**
-	 * The result, the generated Index JSON file, will be saved here.
-	 */
-	private static final String OUTPUT_PATH = "results/";
-	private static final String OUTPUT_FILE = "-index.json";
+	private JsonGenerator jsonGen;
 
-	private static JsonGenerator jsonGen;
-
-	public IndexGeneratorByEntity() {
+	public IndexGeneratorByEntity(JsonGenerator jsonGen) {
+		this.jsonGen = jsonGen;
 	}
 
 	public void processPropertyDocument(PropertyDocument propertyDocument) {
@@ -57,7 +43,7 @@ public class IndexGeneratorByEntity implements IndexGenerator {
 		writeToIndex(indexEntity);
 
 		// TODO
-		System.out.println(indexEntity.toString());
+		// System.out.println(indexEntity.toString());
 
 		// Update and print progress
 		this.itemCount++;
@@ -73,8 +59,6 @@ public class IndexGeneratorByEntity implements IndexGenerator {
 			if (entityDocument instanceof ItemDocument) {
 				IndexEntity indexEntity = retrieveResult((ItemDocument) entityDocument);
 				writeToIndex(indexEntity);
-				// TODO
-//				System.out.println(indexEntity.toString());
 			}
 		} catch (MediaWikiApiErrorException e) {
 			e.printStackTrace();
@@ -164,37 +148,6 @@ public class IndexGeneratorByEntity implements IndexGenerator {
 		// System.out.println(surfaceFormsCount);
 
 		return surfaceForms;
-	}
-
-	public void open() {
-
-		// Prepare JSON output
-		JsonFactory jsonFactory = new JsonFactory();
-		String filepath = OUTPUT_PATH + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + OUTPUT_FILE;
-		FileOutputStream file;
-		try {
-			file = new FileOutputStream(new File(filepath));
-			try {
-				jsonGen = jsonFactory.createGenerator(file, JsonEncoding.UTF8);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		jsonGen.setCodec(new ObjectMapper());
-		jsonGen.setPrettyPrinter(new MinimalPrettyPrinter(""));
-
-		// TODO Ist noch kein JSON array, schließende Klammer wird irgendwie
-		// nicht geschrieben (s.u.)
-		// jsonGen.writeRaw("[");
-	}
-
-	public void close() {
-		// TODO Auto-generated method stub
-
 	}
 
 }

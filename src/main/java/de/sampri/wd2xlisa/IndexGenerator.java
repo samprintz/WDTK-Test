@@ -1,9 +1,9 @@
 package de.sampri.wd2xlisa;
 
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentDumpProcessor;
+import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 
-public interface IndexGenerator extends EntityDocumentDumpProcessor {
+public interface IndexGenerator extends EntityDocumentProcessor {
 
 	void processItemDocumentById(String itemId);
 
