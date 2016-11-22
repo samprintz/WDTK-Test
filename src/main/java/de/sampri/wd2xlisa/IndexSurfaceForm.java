@@ -6,20 +6,16 @@ import java.util.List;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class IndexEntity extends IndexElement {
+public class IndexSurfaceForm extends IndexElement {
 
-	// TODO properties private machen (war für json serialization) + getter &
-	// setter
+	String surfaceForm;
 
-	public String id;
+	public HashMap<String, List<String>> entities;
 
-	public HashMap<String, List<String>> surfaceForms;
+	// TODO Stastics?
 
-	public HashMap<String, Double> statistics;
-
-	public IndexEntity() {
-		this.surfaceForms = new HashMap<String, List<String>>();
-		this.statistics = new HashMap<String, Double>();
+	public IndexSurfaceForm() {
+		this.entities = new HashMap<String, List<String>>();
 	}
 
 	public String toString() {
