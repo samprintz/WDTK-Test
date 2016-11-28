@@ -24,9 +24,8 @@ public class Main {
 	/**
 	 * The dump which entites should be processed..
 	 */
-	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-1000.json.gz";
-	// private final static String DUMP_FILE =
-	// "C:/Daten/Eclipse/wdtk-parent/wdtk-examples/dumpfiles/wikidatawiki/json-20161031/20161031.json.gz";
+//	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-1000.json.gz";
+	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031.json.gz";
 	// private final static String DUMP_FILE =
 	// "./src/main/resources/sample-dump-20150815.json.gz";
 
@@ -49,13 +48,14 @@ public class Main {
 		MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON, "20161031", "wikidatawiki");
 
 		// Get JSON Generator
-		JsonGenerator jsonGenerator = getJsonGenerator();
+		// JsonGenerator jsonGenerator = getJsonGenerator();
 
-		int distinctSitelinks = runSitelinksCounter(mwDumpFile);
+		// int distinctSitelinks = runSitelinksCounter(mwDumpFile);
 
 		runSurfaceFormsCounter(mwDumpFile);
 
-		runIndexGeneratorByEntity(mwDumpFile, jsonGenerator, distinctSitelinks);
+		// runIndexGeneratorByEntity(mwDumpFile, jsonGenerator,
+		// distinctSitelinks);
 
 	}
 
@@ -101,16 +101,19 @@ public class Main {
 
 	private static void runSurfaceFormsCounter(MwLocalDumpFile mwDumpFile) {
 		// Instantiate Dump Processor Controller for SurfaceForms Counter
-		DumpProcessingController dumpProcessingControllerCountSF = new DumpProcessingController("wikidatawiki");
-		dumpProcessingControllerCountSF.setOfflineMode(true);
+		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
+		dumpProcessingController.setOfflineMode(true);
 
 		// Instantiate SurfaceForms Counter
 		SurfaceFormsCounter surfaceFormsCounter = new SurfaceFormsCounter();
-		dumpProcessingControllerCountSF.registerEntityDocumentProcessor(surfaceFormsCounter, null, true);
+		dumpProcessingController.registerEntityDocumentProcessor(surfaceFormsCounter, null, true);
+		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
+		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
 
-		dumpProcessingControllerCountSF.processDump(mwDumpFile);
+		dumpProcessingController.processDump(mwDumpFile);
 
 		surfaceFormsCounter.printStatus();
+		surfaceFormsCounter.writeToFile();
 	}
 
 	private static void runIndexGeneratorByEntity(MwLocalDumpFile mwDumpFile, JsonGenerator jsonGenerator,

@@ -1,9 +1,15 @@
 package de.sampri.wd2xlisa;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
@@ -11,6 +17,9 @@ import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 
 public class SurfaceFormsCounter implements EntityDocumentProcessor {
+
+	private static final String OUTPUT_PATH = "results/";
+	private static final String OUTPUT_FILE = "-sfforms.txt";
 
 	class SurfaceFormStatistics {
 		long countEntities = 0;
@@ -66,6 +75,10 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		if (stat.countEntities % 100000 == 0) {
 			printStatus();
 		}
+
+		if (stat.countEntities % 10000000 == 0) {
+			printStatus();
+		}
 	}
 
 	public void processPropertyDocument(PropertyDocument propertyDocument) {
@@ -85,7 +98,7 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		System.out.println(" * Distinct: " + stat.countDistinctLabels);
 		System.out.println("Aliases: " + stat.countAliases);
 		System.out.println(" * Distinct: " + stat.countDistinctAliases);
-		System.out.println("---");
+		System.out.println("HashMap Size: " + surfaceForms.size());
 	}
 
 	public void printList() {
@@ -98,5 +111,35 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		System.out.println(sorted.toString().replaceAll(",", ",\n"));
 		// System.out.println(sorted.toString());
 	}
+
+	public void writeToFile() {
+		String filepath = OUTPUT_PATH + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + OUTPUT_FILE;
+		Properties properties = new Properties();
+		for (Map.Entry<String, Integer> entry : surfaceForms.entrySet()) {
+			properties.put(entry.getKey(), entry.getValue().toString());
+		}
+		try {
+			properties.store(new FileOutputStream(filepath), null);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// public void writeToFile() {
+	// String filepath = OUTPUT_PATH + new
+	// SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + OUTPUT_FILE;
+	// try {
+	// FileOutputStream fileOut = new FileOutputStream(filepath);
+	// ObjectOutputStream out = new ObjectOutputStream(fileOut);
+	// out.writeObject(surfaceForms);
+	// out.close();
+	// fileOut.close();
+	// System.out.println("Serialized data is saved in " + filepath + ".");
+	// } catch (IOException i) {
+	// i.printStackTrace();
+	// }
+	// }
 
 }
