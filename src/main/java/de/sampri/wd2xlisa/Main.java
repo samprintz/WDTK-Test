@@ -24,10 +24,11 @@ public class Main {
 	/**
 	 * The dump which entites should be processed..
 	 */
-//	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-1000.json.gz";
+	// private final static String DUMP_FILE =
+	// "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-1000.json.gz";
 	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031.json.gz";
 	// private final static String DUMP_FILE =
-	// "./src/main/resources/sample-dump-20150815.json.gz";
+	// "src/main/resources/20161031-head-1000.json.gz";
 
 	/**
 	 * Incremented with each processed entity. Contains the number of processed
@@ -60,10 +61,15 @@ public class Main {
 	}
 
 	private static JsonGenerator getJsonGenerator() {
+		File dir = new File(OUTPUT_PATH);
+		dir.mkdirs();
+
 		JsonFactory jsonFactory = new JsonFactory();
+		JsonGenerator jsonGenerator = null;
+
 		String filepath = OUTPUT_PATH + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + OUTPUT_FILE;
 		FileOutputStream file;
-		JsonGenerator jsonGenerator = null;
+
 		try {
 			file = new FileOutputStream(new File(filepath));
 			try {
@@ -114,6 +120,7 @@ public class Main {
 
 		surfaceFormsCounter.printStatus();
 		surfaceFormsCounter.writeToFile();
+		System.out.println("Done.");
 	}
 
 	private static void runIndexGeneratorByEntity(MwLocalDumpFile mwDumpFile, JsonGenerator jsonGenerator,

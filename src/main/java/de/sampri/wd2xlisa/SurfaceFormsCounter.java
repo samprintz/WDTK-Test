@@ -1,5 +1,6 @@
 package de.sampri.wd2xlisa;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,7 +11,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentMap;
 
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.Serializer;
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
@@ -33,7 +38,12 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		long countDistinctSurfaceForms = 0;
 	}
 
-	HashMap<String, Integer> surfaceForms = new HashMap<String, Integer>();
+	// HashMap<String, Integer> surfaceForms = new HashMap<String, Integer>();
+
+	// DB db = DBMaker.memoryDB("results/file.db").make();
+	DB db = DBMaker.memoryDB().make();
+	ConcurrentMap<String, Integer> surfaceForms = db.hashMap("map", Serializer.STRING, Serializer.INTEGER)
+			.counterEnable().create();
 
 	SurfaceFormStatistics stat = new SurfaceFormStatistics();
 
@@ -113,6 +123,8 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 	}
 
 	public void writeToFile() {
+		File dir = new File(OUTPUT_PATH);
+		dir.mkdirs();
 		String filepath = OUTPUT_PATH + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + OUTPUT_FILE;
 		Properties properties = new Properties();
 		for (Map.Entry<String, Integer> entry : surfaceForms.entrySet()) {
@@ -125,6 +137,8 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		db.close();
 	}
 
 	// public void writeToFile() {
