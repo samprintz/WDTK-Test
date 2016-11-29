@@ -1,18 +1,14 @@
 package de.sampri.wd2xlisa;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
+import java.io.Writer;
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.ConcurrentMap;
 
+import org.apache.log4j.Logger;
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
@@ -23,8 +19,7 @@ import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 
 public class SurfaceFormsCounter implements EntityDocumentProcessor {
 
-	private static final String OUTPUT_PATH = "results/";
-	private static final String OUTPUT_FILE = "-sfforms.txt";
+	Logger logger;
 
 	class SurfaceFormStatistics {
 		long countEntities = 0;
@@ -39,13 +34,15 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 	}
 
 	// HashMap<String, Integer> surfaceForms = new HashMap<String, Integer>();
-
 	// DB db = DBMaker.memoryDB("results/file.db").make();
 	DB db = DBMaker.memoryDB().make();
-	ConcurrentMap<String, Integer> surfaceForms = db.hashMap("map", Serializer.STRING, Serializer.INTEGER)
-			.counterEnable().create();
+	ConcurrentMap<String, Integer> surfaceForms = db.hashMap("map", Serializer.STRING, Serializer.INTEGER).create(); // .counterEnable()
 
 	SurfaceFormStatistics stat = new SurfaceFormStatistics();
+
+	public SurfaceFormsCounter(Logger logger) {
+		this.logger = logger;
+	}
 
 	public void processItemDocument(ItemDocument itemDocument) {
 		stat.countEntities++;
@@ -83,17 +80,23 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		}
 
 		if (stat.countEntities % 100000 == 0) {
-			printStatus();
-		}
-
-		if (stat.countEntities % 10000000 == 0) {
-			printStatus();
+			logStatus();
+			// printStatus();
 		}
 	}
 
 	public void processPropertyDocument(PropertyDocument propertyDocument) {
 		stat.countEntities++;
 		stat.countProperties++;
+	}
+
+	public void logStatus() {
+		logger.info("Processed " + stat.countEntities + " entities (" + stat.countItems + " Q, " + stat.countProperties
+				+ " P) and counted " + stat.countDistinctSurfaceForms + " distinct surface forms.");
+
+		logger.debug("Of the " + stat.countSurfaceForms + " surface forms (" + stat.countDistinctSurfaceForms
+				+ " distinct), " + stat.countLabels + " were labels (" + stat.countDistinctLabels + " distinct) and "
+				+ stat.countAliases + " aliases (" + stat.countDistinctAliases + " distinct).");
 	}
 
 	public void printStatus() {
@@ -122,23 +125,64 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		// System.out.println(sorted.toString());
 	}
 
-	public void writeToFile() {
-		File dir = new File(OUTPUT_PATH);
-		dir.mkdirs();
-		String filepath = OUTPUT_PATH + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + OUTPUT_FILE;
-		Properties properties = new Properties();
-		for (Map.Entry<String, Integer> entry : surfaceForms.entrySet()) {
-			properties.put(entry.getKey(), entry.getValue().toString());
-		}
+	public void writeToFile(String filepath) {
+		logger.info("Write surface forms to file (" + filepath + ")...");
+
+		String eol = System.getProperty("line.separator");
+		int count = 0;
+
 		try {
-			properties.store(new FileOutputStream(filepath), null);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			Writer writer = new FileWriter(filepath);
+
+			for (Map.Entry<String, Integer> entry : surfaceForms.entrySet()) {
+				writer.append(entry.getKey()).append(',').append(entry.getValue().toString()).append(eol);
+				count++;
+				if (count % 1000000 == 0) {
+					logger.info("Written " + count + " surface forms to file.");
+				}
+			}
+
+			writer.close();
+		} catch (IOException ex) {
+			ex.printStackTrace(System.err);
 		}
 
+		// Properties properties = new Properties();
+		// for (Map.Entry<String, Integer> entry : surfaceForms.entrySet()) {
+		// properties.put(entry.getKey(), entry.getValue().toString());
+		// }
+		// try {
+		// properties.store(new FileOutputStream(filepath), null);
+		// } catch (FileNotFoundException e) {
+		// e.printStackTrace();
+		// } catch (IOException e) {
+		// e.printStackTrace();
+		// }
+
+		//
+		// CsvMapper mapper = new CsvMapper();
+		//
+		// Column
+		//
+		// CsvSchema schema = new CsvSchema(CsvSchema.Column[] columns, int
+		// features, char columnSeparator, int quoteChar, int escapeChar, char[]
+		// lineSeparator, int arrayElementSeparator, char[] nullValue)
+		//// CsvSchema schema = new CsvSchema(arg0, arg1, arg2, arg3, arg4,
+		// arg5, arg6, arg7, arg8)
+		//// mapper.schemaFor(YourPojo.class).withHeader();
+		// mapper.writer(schema).writeValueAsString(surfaceForms);
+
+		// StringWriter output = new StringWriter();
+		// try (ICsvListWriter listWriter = new CsvListWriter(output,
+		// CsvPreference.STANDARD_PREFERENCE)) {
+		// for (Map.Entry<String, String> entry : map.entrySet()) {
+		// listWriter.write(entry.getKey(), entry.getValue());
+		// }
+		// }
+
 		db.close();
+
+		logger.info("All surface forms written to file (" + filepath + ").");
 	}
 
 	// public void writeToFile() {

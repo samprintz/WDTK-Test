@@ -91,7 +91,7 @@ public class IndexGeneratorAlt implements IndexGenerator {
 		DumpProcessingController dumpProcessingControllerCountSF = new DumpProcessingController("wikidatawiki");
 		dumpProcessingControllerCountSF.setOfflineMode(true);
 		// Instantiate SurfaceForms Counter
-		SurfaceFormsCounter surfaceFormsCounter = new SurfaceFormsCounter();
+		SurfaceFormsCounter surfaceFormsCounter = new SurfaceFormsCounter(null);
 		dumpProcessingControllerCountSF.registerEntityDocumentProcessor(surfaceFormsCounter, null, true);
 		dumpProcessingControllerCountSF.processDump(mwDumpFile);
 		surfaceFormsCounter.printStatus();
