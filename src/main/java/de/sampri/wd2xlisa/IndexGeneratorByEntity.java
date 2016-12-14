@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocument;
+import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
@@ -15,7 +17,12 @@ import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 
-public class IndexGeneratorByEntity implements IndexGenerator {
+import de.sampri.wd2xlisa.model.EntityBlock;
+
+public class IndexGeneratorByEntity
+		implements EntityDocumentProcessor /* implements IndexGenerator */ {
+
+	Logger logger;
 
 	/**
 	 * Incremented with each processed entity. Contains the number of processed
@@ -31,24 +38,25 @@ public class IndexGeneratorByEntity implements IndexGenerator {
 
 	private JsonGenerator jsonGen;
 
-	public IndexGeneratorByEntity(JsonGenerator jsonGen) {
+	List<EntityBlock> entities = new ArrayList<EntityBlock>();
+
+	public IndexGeneratorByEntity(Logger logger, JsonGenerator jsonGen, int distinctSitelinks) {
+		this.logger = logger;
 		this.jsonGen = jsonGen;
+		this.distinctSitelinks = distinctSitelinks;
 	}
 
 	public void processPropertyDocument(PropertyDocument propertyDocument) {
 	}
 
 	public void processItemDocument(ItemDocument itemDocument) {
-		IndexEntity indexEntity = retrieveResult(itemDocument);
-		writeToIndex(indexEntity);
+		EntityBlock entity = retrieveResult(itemDocument);
+		entities.add(entity);
+		// writeToIndex(entityBlock);
 
-		// TODO
-		// System.out.println(indexEntity.toString());
-
-		// Update and print progress
 		this.itemCount++;
-		if (this.itemCount % 1000 == 0) {
-			// printStatus();
+		if (this.itemCount % 1000000 == 0) {
+			logStatus();
 		}
 	}
 
@@ -57,54 +65,35 @@ public class IndexGeneratorByEntity implements IndexGenerator {
 		try {
 			EntityDocument entityDocument = wbdf.getEntityDocument(itemId);
 			if (entityDocument instanceof ItemDocument) {
-				IndexEntity indexEntity = retrieveResult((ItemDocument) entityDocument);
-				writeToIndex(indexEntity);
+				EntityBlock entity = retrieveResult((ItemDocument) entityDocument);
+				entities.add(entity);
+				// writeToIndex(entityBlock);
 			}
 		} catch (MediaWikiApiErrorException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public IndexEntity retrieveResult(ItemDocument itemDocument) {
-		IndexEntity indexEntity = new IndexEntity();
+	public void logStatus() {
+		logger.info("Processed " + itemCount + " entities.");
+	}
+
+	public EntityBlock retrieveResult(ItemDocument itemDocument) {
+		EntityBlock entity = new EntityBlock();
 
 		// ID
-		indexEntity.id = itemDocument.getItemId().getId();
+		entity.setId(itemDocument.getItemId().getId());
 
 		// Surface forms
-		indexEntity.surfaceForms = retrieveSurfaceForms(itemDocument);
+		// TODO Werden hier erstmal nicht mehr gebraucht
+		// indexEntity.surfaceForms = retrieveSurfaceForms(itemDocument);
 
 		// Statistics
-		indexEntity.statistics = retrieveStatistics(itemDocument);
+		int sitelinksCount = itemDocument.getSiteLinks().size();
+		entity.setSitelinksCount(sitelinksCount);
+		entity.setProbability((double) sitelinksCount / distinctSitelinks);
 
-		return indexEntity;
-	}
-
-	public void writeToIndex(IndexElement indexElement) {
-		try {
-			jsonGen.writeObject(indexElement);
-			jsonGen.writeRaw(",\n");
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
-	}
-
-	/**
-	 * Given an item document it calculates the statistics of the item.
-	 * 
-	 * @param itemDocument
-	 *            The item which statistics should be calculated.
-	 * @return The statistics for the item.
-	 */
-	private HashMap<String, Double> retrieveStatistics(ItemDocument itemDocument) {
-		HashMap<String, Double> statistics = new HashMap<String, Double>();
-
-		double sitelinksAbs = itemDocument.getSiteLinks().size();
-		double sitelinksRel = sitelinksAbs / distinctSitelinks;
-		statistics.put("sitelinksAbs", sitelinksAbs);
-		statistics.put("sitelinksRel", sitelinksRel);
-
-		return statistics;
+		return entity;
 	}
 
 	/**
@@ -144,10 +133,28 @@ public class IndexGeneratorByEntity implements IndexGenerator {
 			surfaceForms.put(language, surfaceFormsForLanguage);
 		}
 
-		// TODO
-		// System.out.println(surfaceFormsCount);
-
 		return surfaceForms;
+	}
+
+	public void writeToFile(String filepath) {
+		logger.info("Write entity index to file (" + filepath + ")...");
+
+		int count = 0;
+
+		try {
+			for (EntityBlock entity : entities) {
+				jsonGen.writeObject(entity);
+				jsonGen.writeRaw(",\n");
+				count++;
+				if (count % 1000000 == 0) {
+					logger.info("Written " + count + " entities to file.");
+				}
+			}
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+
+		logger.info("All entities written to index (" + filepath + ").");
 	}
 
 }

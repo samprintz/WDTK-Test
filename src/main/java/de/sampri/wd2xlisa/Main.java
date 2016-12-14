@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.FileAppender;
@@ -31,9 +33,15 @@ public class Main {
 	 * The dump which entites should be processed.
 	 */
 	// TODO als Parameter?
-	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031.json.gz";
-//	private final static String DUMP_FILE = "src/main/resources/20161031.json.gz";
-//	private final static String DUMP_FILE = "src/main/resources/20161031-head-1000.json.gz";
+	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
+	// private final static String DUMP_FILE =
+	// "src/main/resources/20161031.json.gz";
+	// private final static String DUMP_FILE =
+	// "src/main/resources/20161031-head-1000.json.gz";
+
+	// Select dump file
+	private final static MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON, "20161031",
+			"wikidatawiki");
 
 	/**
 	 * Incremented with each processed entity. Contains the number of processed
@@ -59,18 +67,23 @@ public class Main {
 
 		configureLogging();
 
-		// Select dump file
-		MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON, "20161031", "wikidatawiki");
-
 		// Get JSON Generator
-		// JsonGenerator jsonGenerator = getJsonGenerator();
+		JsonGenerator jsonGenerator = getJsonGenerator();
 
-		// int distinctSitelinks = runSitelinksCounter(mwDumpFile);
+		// Count Sitelinks
+		int distinctSitelinks = runSitelinksCounter();
 
-		runSurfaceFormsCounter(mwDumpFile);
+		// Get all Surface Forms
+		ConcurrentMap<String, Integer> distinctSurfaceForms = runSurfaceFormsCounter();
 
-		// runIndexGeneratorByEntity(mwDumpFile, jsonGenerator,
-		// distinctSitelinks);
+		// Create Entity Index
+		runEntityIndexGenerator(jsonGenerator, distinctSitelinks);
+
+		// Create Surface Form Index
+		runSurfaceFormIndexGenerator(distinctSurfaceForms);
+
+		// Create Sense Index
+		runSenseIndexGenerator(mwDumpFile);
 
 	}
 
@@ -124,21 +137,31 @@ public class Main {
 		// jsonGen.writeRaw("[");
 	}
 
-	private static int runSitelinksCounter(MwLocalDumpFile mwDumpFile) {
+	private static int runSitelinksCounter() {
+		logger.info("Start counting of distinct sitelinks.");
+
 		// Instantiate Dump Processor Controller for Sitelinks Counter
-		DumpProcessingController dumpProcessingControllerCountSL = new DumpProcessingController("wikidatawiki");
-		dumpProcessingControllerCountSL.setOfflineMode(true);
+		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
+		dumpProcessingController.setOfflineMode(true);
 
 		// Instantiate Sitelinks Counter
 		SitelinksCounter sitelinksCounter = new SitelinksCounter();
-		dumpProcessingControllerCountSL.registerEntityDocumentProcessor(sitelinksCounter, null, true);
+		dumpProcessingController.registerEntityDocumentProcessor(sitelinksCounter, null, true);
+		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
+		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
 
-		dumpProcessingControllerCountSL.processDump(mwDumpFile);
+		dumpProcessingController.processDump(mwDumpFile);
+
+		entityTimerProcessor.close();
+
+		logger.info("Finished counting of distinct sitelinks.");
 
 		return sitelinksCounter.getResult();
 	}
 
-	private static void runSurfaceFormsCounter(MwLocalDumpFile mwDumpFile) {
+	private static ConcurrentMap<String, Integer> runSurfaceFormsCounter() {
+		logger.info("Start creation of surface forms index.");
+
 		// Instantiate Dump Processor Controller for SurfaceForms Counter
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
 		dumpProcessingController.setOfflineMode(true);
@@ -158,26 +181,50 @@ public class Main {
 		surfaceFormsCounter.writeToFile(filepath);
 
 		logger.info("Finished creation of surface form list. File at " + filepath);
+
+		return surfaceFormsCounter.getResult();
 	}
 
-	private static void runIndexGeneratorByEntity(MwLocalDumpFile mwDumpFile, JsonGenerator jsonGenerator,
-			int distinctSiteLinks) {
+	private static void runEntityIndexGenerator(JsonGenerator jsonGenerator,
+			int distinctSitelinks) {
+		logger.info("Start creation of entity index.");
+
 		// Instantiate Dump Processor Controller for Index Generator
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
 		dumpProcessingController.setOfflineMode(true);
 
 		// Instantiale Index Generator and Timer Processor
-		IndexGeneratorByEntity indexGeneratorByEntity = new IndexGeneratorByEntity(jsonGenerator);
+		IndexGeneratorByEntity indexGeneratorByEntity = new IndexGeneratorByEntity(logger, jsonGenerator,
+				distinctSitelinks);
 		dumpProcessingController.registerEntityDocumentProcessor(indexGeneratorByEntity, null, true);
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
 
-		indexGeneratorByEntity.distinctSitelinks = distinctSiteLinks;
 		dumpProcessingController.processDump(mwDumpFile);
 
-		// indexGeneratorByEntity.processItemDocumentById("Q1726");
-
 		entityTimerProcessor.close();
+
+		// indexGeneratorByEntity.logStatus();
+
+		String filepath = OUTPUT_PATH + getTimeStamp() + INDEX_FILE;
+
+		indexGeneratorByEntity.writeToFile(filepath);
+
+		logger.info("Finished creation of entity index. File at " + filepath);
+
+		// indexGeneratorByEntity.processItemDocumentById("Q1726");
+	}
+
+	private static void runSurfaceFormIndexGenerator(ConcurrentMap<String,Integer> distinctSurfaceForms) {
+//		distinctSurfaceForms
+		for (Map.Entry<String, Integer> sf : distinctSurfaceForms.entrySet()) {
+			
+		}
+	}
+
+	private static void runSenseIndexGenerator(MwLocalDumpFile mwDumpFile) {
+		// TODO Auto-generated method stub
+
 	}
 
 }

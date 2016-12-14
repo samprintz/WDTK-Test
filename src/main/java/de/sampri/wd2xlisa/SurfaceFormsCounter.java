@@ -147,57 +147,13 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 			ex.printStackTrace(System.err);
 		}
 
-		// Properties properties = new Properties();
-		// for (Map.Entry<String, Integer> entry : surfaceForms.entrySet()) {
-		// properties.put(entry.getKey(), entry.getValue().toString());
-		// }
-		// try {
-		// properties.store(new FileOutputStream(filepath), null);
-		// } catch (FileNotFoundException e) {
-		// e.printStackTrace();
-		// } catch (IOException e) {
-		// e.printStackTrace();
-		// }
-
-		//
-		// CsvMapper mapper = new CsvMapper();
-		//
-		// Column
-		//
-		// CsvSchema schema = new CsvSchema(CsvSchema.Column[] columns, int
-		// features, char columnSeparator, int quoteChar, int escapeChar, char[]
-		// lineSeparator, int arrayElementSeparator, char[] nullValue)
-		//// CsvSchema schema = new CsvSchema(arg0, arg1, arg2, arg3, arg4,
-		// arg5, arg6, arg7, arg8)
-		//// mapper.schemaFor(YourPojo.class).withHeader();
-		// mapper.writer(schema).writeValueAsString(surfaceForms);
-
-		// StringWriter output = new StringWriter();
-		// try (ICsvListWriter listWriter = new CsvListWriter(output,
-		// CsvPreference.STANDARD_PREFERENCE)) {
-		// for (Map.Entry<String, String> entry : map.entrySet()) {
-		// listWriter.write(entry.getKey(), entry.getValue());
-		// }
-		// }
-
-		db.close();
+//		db.close();
 
 		logger.info("All surface forms written to file (" + filepath + ").");
 	}
 
-	// public void writeToFile() {
-	// String filepath = OUTPUT_PATH + new
-	// SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + OUTPUT_FILE;
-	// try {
-	// FileOutputStream fileOut = new FileOutputStream(filepath);
-	// ObjectOutputStream out = new ObjectOutputStream(fileOut);
-	// out.writeObject(surfaceForms);
-	// out.close();
-	// fileOut.close();
-	// System.out.println("Serialized data is saved in " + filepath + ".");
-	// } catch (IOException i) {
-	// i.printStackTrace();
-	// }
-	// }
+	public ConcurrentMap<String, Integer> getResult() {
+		return this.surfaceForms;
+	}
 
 }
