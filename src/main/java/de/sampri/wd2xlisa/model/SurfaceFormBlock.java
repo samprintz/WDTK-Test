@@ -1,9 +1,9 @@
 package de.sampri.wd2xlisa.model;
 
-public class SurfaceFormBlock {
+public class SurfaceFormBlock implements Block {
 
 	String text;
 
-	double probobility;
+	double probability;
 
 }

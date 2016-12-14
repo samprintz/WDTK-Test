@@ -71,19 +71,19 @@ public class Main {
 		JsonGenerator jsonGenerator = getJsonGenerator();
 
 		// Count Sitelinks
-		int distinctSitelinks = runSitelinksCounter();
+		int distinctSitelinks = getDistinctSitelinks();
 
 		// Get all Surface Forms
-		ConcurrentMap<String, Integer> distinctSurfaceForms = runSurfaceFormsCounter();
+		ConcurrentMap<String, Integer> distinctSurfaceForms = getDistinctSurfaceForms();
 
 		// Create Entity Index
 		runEntityIndexGenerator(jsonGenerator, distinctSitelinks);
 
 		// Create Surface Form Index
-		runSurfaceFormIndexGenerator(distinctSurfaceForms);
+		runSurfaceFormIndexGenerator(jsonGenerator, distinctSurfaceForms);
 
 		// Create Sense Index
-		runSenseIndexGenerator(mwDumpFile);
+		runSenseIndexGenerator(jsonGenerator, distinctSurfaceForms);
 
 	}
 
@@ -137,7 +137,7 @@ public class Main {
 		// jsonGen.writeRaw("[");
 	}
 
-	private static int runSitelinksCounter() {
+	private static int getDistinctSitelinks() {
 		logger.info("Start counting of distinct sitelinks.");
 
 		// Instantiate Dump Processor Controller for Sitelinks Counter
@@ -159,7 +159,7 @@ public class Main {
 		return sitelinksCounter.getResult();
 	}
 
-	private static ConcurrentMap<String, Integer> runSurfaceFormsCounter() {
+	private static ConcurrentMap<String, Integer> getDistinctSurfaceForms() {
 		logger.info("Start creation of surface forms index.");
 
 		// Instantiate Dump Processor Controller for SurfaceForms Counter
@@ -185,8 +185,7 @@ public class Main {
 		return surfaceFormsCounter.getResult();
 	}
 
-	private static void runEntityIndexGenerator(JsonGenerator jsonGenerator,
-			int distinctSitelinks) {
+	private static void runEntityIndexGenerator(JsonGenerator jsonGenerator, int distinctSitelinks) {
 		logger.info("Start creation of entity index.");
 
 		// Instantiate Dump Processor Controller for Index Generator
@@ -208,6 +207,7 @@ public class Main {
 
 		String filepath = OUTPUT_PATH + getTimeStamp() + INDEX_FILE;
 
+		// writeToFile
 		indexGeneratorByEntity.writeToFile(filepath);
 
 		logger.info("Finished creation of entity index. File at " + filepath);
@@ -215,14 +215,17 @@ public class Main {
 		// indexGeneratorByEntity.processItemDocumentById("Q1726");
 	}
 
-	private static void runSurfaceFormIndexGenerator(ConcurrentMap<String,Integer> distinctSurfaceForms) {
-//		distinctSurfaceForms
+	private static void runSurfaceFormIndexGenerator(JsonGenerator jsonGenerator,
+			ConcurrentMap<String, Integer> distinctSurfaceForms) {
+
+		// writeToFile
 		for (Map.Entry<String, Integer> sf : distinctSurfaceForms.entrySet()) {
 			
 		}
 	}
 
-	private static void runSenseIndexGenerator(MwLocalDumpFile mwDumpFile) {
+	private static void runSenseIndexGenerator(JsonGenerator jsonGenerator,
+			ConcurrentMap<String, Integer> distinctSurfaceForms) {
 		// TODO Auto-generated method stub
 
 	}

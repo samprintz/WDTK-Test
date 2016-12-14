@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 //import java.util.HashMap;
 //import java.util.List;
 
-public class EntityBlock {
+public class EntityBlock implements Block {
 
 	String id;
 	long sitelinksCount;

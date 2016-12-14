@@ -1,6 +1,6 @@
 package de.sampri.wd2xlisa.model;
 
-public class SenseBlock {
+public class SenseBlock implements Block {
 
 	String id;
 
