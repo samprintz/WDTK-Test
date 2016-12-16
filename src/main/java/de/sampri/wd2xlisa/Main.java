@@ -31,9 +31,9 @@ public class Main {
 	/**
 	 * The dump which entites should be processed.
 	 */
+	private final static String DUMP_FILE = "src/main/resources/20161031.json.gz";
 	// private final static String DUMP_FILE =
-	// "src/main/resources/20161031.json.gz";
-	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
+	// "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
 
 	/**
 	 * Contains the dump file

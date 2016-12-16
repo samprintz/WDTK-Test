@@ -13,17 +13,7 @@ import de.sampri.wd2xlisa.Helper;
 
 public class Index<T> {
 
-	// private final Class<T> type;
-
 	List<T> blocks = new ArrayList<T>();
-
-	// public Index(Class<T> type) {
-	// this.type = type;
-	// }
-
-	// public Class<T> getType() {
-	// return type;
-	// }
 
 	public void add(T block) {
 		blocks.add(block);
@@ -33,25 +23,25 @@ public class Index<T> {
 		logger.info("Write index to file (" + filepath + ")...");
 
 		JsonGenerator jsonGenerator = Helper.getJsonGenerator(filepath, logger);
-		jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
+//		jsonGenerator.setPrettyPrinter(new DefaultPrettyPrinter());
 
-		// TODO
-//		int count = 0;
+		int count = 0;
 
 		try {
-			jsonGenerator.writeObject(blocks);
+//			jsonGenerator.writeObject(blocks);
 			
 //			jsonGenerator.writeStartArray();
-//
-//			for (T entity : blocks) {
-//				jsonGenerator.writeObject(entity);
-//
-//				count++;
-//				if (count % Helper.loggingDepth == 0) {
-//					logger.info("Written " + count + " entities to file.");
-//				}
-//			}
-//
+
+			for (T entity : blocks) {
+				jsonGenerator.writeObject(entity);
+				jsonGenerator.writeRaw("\n");
+
+				count++;
+				if (count % Helper.LOGGING_DEPTH == 0) {
+					logger.info("Written " + count + " entities to file.");
+				}
+			}
+
 //			jsonGenerator.writeEndArray();
 		} catch (IOException ex) {
 			ex.printStackTrace();
