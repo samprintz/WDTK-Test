@@ -8,18 +8,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class EntityBlock implements Block {
 
-	String id;
-	long sitelinksCount;
-	long surfaceFormsCount;
-	double probability;
+	private String entity;
+
+	private long sitelinksCount;
+
+	// private long surfaceFormsCount;
+
+	private double probability;
+
 	// HashMap<String, List<String>> surfaceForms;
 
-	public String getId() {
-		return this.id;
+	public EntityBlock() {
 	}
 
-	public void setId(String id) {
-		this.id = id;
+	public EntityBlock(String entity, double probability) {
+		this.entity = entity;
+		this.probability = probability;
+	}
+
+	public String getEntity() {
+		return this.entity;
+	}
+
+	public void setEntity(String entity) {
+		this.entity = entity;
 	}
 
 	public long getSitelinkCount() {
@@ -30,13 +42,13 @@ public class EntityBlock implements Block {
 		this.sitelinksCount = sitelinksCount;
 	}
 
-	public long getSurfaceFormsCount() {
-		return this.surfaceFormsCount;
-	}
-
-	public void setSurfaceFormsCount(int surfaceFormsCount) {
-		this.surfaceFormsCount = surfaceFormsCount;
-	}
+	// public long getSurfaceFormsCount() {
+	// return this.surfaceFormsCount;
+	// }
+	//
+	// public void setSurfaceFormsCount(int surfaceFormsCount) {
+	// this.surfaceFormsCount = surfaceFormsCount;
+	// }
 
 	public double getProbability() {
 		return this.probability;

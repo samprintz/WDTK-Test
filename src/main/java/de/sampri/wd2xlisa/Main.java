@@ -1,12 +1,7 @@
 package de.sampri.wd2xlisa;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.log4j.ConsoleAppender;
@@ -19,43 +14,61 @@ import org.wikidata.wdtk.dumpfiles.DumpProcessingController;
 import org.wikidata.wdtk.dumpfiles.EntityTimerProcessor;
 import org.wikidata.wdtk.dumpfiles.MwLocalDumpFile;
 
-import com.fasterxml.jackson.core.JsonEncoding;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import de.sampri.wd2xlisa.model.EntityBlock;
+import de.sampri.wd2xlisa.model.Index;
+import de.sampri.wd2xlisa.model.SenseBlock;
+import de.sampri.wd2xlisa.model.SurfaceFormBlock;
 
 public class Main {
 
+	/**
+	 * The logger. Logs to console and file which path is specified in
+	 * {@link #LOG_PATH} and {@link #LOG_FILE}.}
+	 */
 	static final Logger logger = Logger.getRootLogger();
 
+	// TODO als Parameter?
 	/**
 	 * The dump which entites should be processed.
 	 */
-	// TODO als Parameter?
-	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
 	// private final static String DUMP_FILE =
 	// "src/main/resources/20161031.json.gz";
-	// private final static String DUMP_FILE =
-	// "src/main/resources/20161031-head-1000.json.gz";
+	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
 
-	// Select dump file
+	/**
+	 * Contains the dump file
+	 */
 	private final static MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON, "20161031",
 			"wikidatawiki");
 
 	/**
-	 * Incremented with each processed entity. Contains the number of processed
-	 * entities after the dump was processed.
-	 */
-	int itemCount = 0;
-
-	/**
-	 * The result, the generated Index JSON file, will be saved here.
+	 * The results will be saved here.
 	 */
 	private static final String OUTPUT_PATH = "results/";
-	private static final String INDEX_FILE = "-index.json";
-	private static final String SFFORM_FILE = "-sfforms.txt";
+
+	/**
+	 * Postfix of the JSON file for of the entity index.
+	 */
+	private static final String ENTITY_INDEX_FILE = "-entity-index.json";
+
+	/**
+	 * Postfix of the JSON file for of the surface form index.
+	 */
+	private static final String SFFORM_INDEX_FILE = "-sfform-index.json";
+
+	/**
+	 * Postfix of the JSON file for of the sense index.
+	 */
+	private static final String SENSE_INDEX_FILE = "-sense-index.json";
+
+	/**
+	 * The logs will be saved here.
+	 */
 	private static final String LOG_PATH = "logs/";
+
+	/**
+	 * Postfix of the log file.
+	 */
 	private static final String LOG_FILE = "-log.log";
 
 	public static void main(String[] args) {
@@ -67,8 +80,7 @@ public class Main {
 
 		configureLogging();
 
-		// Get JSON Generator
-		JsonGenerator jsonGenerator = getJsonGenerator();
+		logger.info("=== Preprocessing ===");
 
 		// Count Sitelinks
 		int distinctSitelinks = getDistinctSitelinks();
@@ -76,14 +88,20 @@ public class Main {
 		// Get all Surface Forms
 		ConcurrentMap<String, Integer> distinctSurfaceForms = getDistinctSurfaceForms();
 
+		logger.info("");
+		logger.info("=== Processing ===");
+
 		// Create Entity Index
-		runEntityIndexGenerator(jsonGenerator, distinctSitelinks);
+		runEntityIndexGenerator(distinctSitelinks);
 
 		// Create Surface Form Index
-		runSurfaceFormIndexGenerator(jsonGenerator, distinctSurfaceForms);
+		runSurfaceFormIndexGenerator(distinctSurfaceForms);
 
 		// Create Sense Index
-		runSenseIndexGenerator(jsonGenerator, distinctSurfaceForms);
+		runSenseIndexGenerator(distinctSurfaceForms);
+
+		logger.info("");
+		logger.info("Done.");
 
 	}
 
@@ -97,7 +115,7 @@ public class Main {
 		logger.addAppender(consoleAppender);
 
 		try {
-			FileAppender fileAppender = new FileAppender(layout, LOG_PATH + getTimeStamp() + LOG_FILE, false);
+			FileAppender fileAppender = new FileAppender(layout, LOG_PATH + Helper.getTimeStamp() + LOG_FILE, false);
 			logger.addAppender(fileAppender);
 		} catch (IOException e) {
 			System.out.println("File logger could not be initialized: " + e);
@@ -105,40 +123,8 @@ public class Main {
 		}
 	}
 
-	static String getTimeStamp() {
-		return new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-	}
-
-	private static JsonGenerator getJsonGenerator() {
-		JsonFactory jsonFactory = new JsonFactory();
-		JsonGenerator jsonGenerator = null;
-
-		String filepath = OUTPUT_PATH + getTimeStamp() + INDEX_FILE;
-		FileOutputStream file;
-
-		try {
-			file = new FileOutputStream(new File(filepath));
-			try {
-				jsonGenerator = jsonFactory.createGenerator(file, JsonEncoding.UTF8);
-				jsonGenerator.setCodec(new ObjectMapper());
-				jsonGenerator.setPrettyPrinter(new MinimalPrettyPrinter(""));
-			} catch (IOException e) {
-				logger.error("Result could not be written into JSON file.");
-				e.printStackTrace();
-			}
-		} catch (FileNotFoundException e) {
-			logger.error("JSON file for result was not found.");
-			e.printStackTrace();
-		}
-		return jsonGenerator;
-
-		// TODO Ist noch kein JSON array, schließende Klammer wird irgendwie
-		// nicht geschrieben (s.u.)
-		// jsonGen.writeRaw("[");
-	}
-
 	private static int getDistinctSitelinks() {
-		logger.info("Start counting of distinct sitelinks.");
+		logger.info("> Start counting of distinct sitelinks...");
 
 		// Instantiate Dump Processor Controller for Sitelinks Counter
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
@@ -160,7 +146,7 @@ public class Main {
 	}
 
 	private static ConcurrentMap<String, Integer> getDistinctSurfaceForms() {
-		logger.info("Start creation of surface forms index.");
+		logger.info("> Start collecting distinct surface forms...");
 
 		// Instantiate Dump Processor Controller for SurfaceForms Counter
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
@@ -174,28 +160,28 @@ public class Main {
 
 		dumpProcessingController.processDump(mwDumpFile);
 
+		entityTimerProcessor.close();
+
 		surfaceFormsCounter.logStatus();
 
-		String filepath = OUTPUT_PATH + getTimeStamp() + SFFORM_FILE;
+		// String filepath = OUTPUT_PATH + Helper.getTimeStamp() + SFFORM_FILE;
+		// surfaceFormsCounter.writeToFile(filepath);
 
-		surfaceFormsCounter.writeToFile(filepath);
-
-		logger.info("Finished creation of surface form list. File at " + filepath);
+		logger.info("Finished collecting of distinct surface forms.");
 
 		return surfaceFormsCounter.getResult();
 	}
 
-	private static void runEntityIndexGenerator(JsonGenerator jsonGenerator, int distinctSitelinks) {
-		logger.info("Start creation of entity index.");
+	private static void runEntityIndexGenerator(int distinctSitelinks) {
+		logger.info("> Start creation of entity index...");
 
 		// Instantiate Dump Processor Controller for Index Generator
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
 		dumpProcessingController.setOfflineMode(true);
 
 		// Instantiale Index Generator and Timer Processor
-		IndexGeneratorByEntity indexGeneratorByEntity = new IndexGeneratorByEntity(logger, jsonGenerator,
-				distinctSitelinks);
-		dumpProcessingController.registerEntityDocumentProcessor(indexGeneratorByEntity, null, true);
+		IndexGeneratorByEntity indexGenerator = new IndexGeneratorByEntity(logger, distinctSitelinks);
+		dumpProcessingController.registerEntityDocumentProcessor(indexGenerator, null, true);
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
 
@@ -203,31 +189,59 @@ public class Main {
 
 		entityTimerProcessor.close();
 
-		// indexGeneratorByEntity.logStatus();
-
-		String filepath = OUTPUT_PATH + getTimeStamp() + INDEX_FILE;
+		// indexGenerator.generateIndex();
+		Index<EntityBlock> index = indexGenerator.getIndex();
 
 		// writeToFile
-		indexGeneratorByEntity.writeToFile(filepath);
+		String filepath = OUTPUT_PATH + Helper.getTimeStamp() + ENTITY_INDEX_FILE;
+		index.writeToFile(filepath, logger);
+		// indexGeneratorByEntity.writeToFile(filepath);
 
 		logger.info("Finished creation of entity index. File at " + filepath);
 
 		// indexGeneratorByEntity.processItemDocumentById("Q1726");
 	}
 
-	private static void runSurfaceFormIndexGenerator(JsonGenerator jsonGenerator,
-			ConcurrentMap<String, Integer> distinctSurfaceForms) {
+	private static void runSurfaceFormIndexGenerator(ConcurrentMap<String, Integer> distinctSurfaceForms) {
+		logger.info("> Start creation of surface form index...");
 
-		// writeToFile
-		for (Map.Entry<String, Integer> sf : distinctSurfaceForms.entrySet()) {
-			
-		}
+		IndexGeneratorBySurfaceForm indexGenerator = new IndexGeneratorBySurfaceForm();
+		indexGenerator.generateIndex(distinctSurfaceForms);
+		Index<SurfaceFormBlock> index = indexGenerator.getIndex();
+
+		String filepath = OUTPUT_PATH + Helper.getTimeStamp() + SFFORM_INDEX_FILE;
+		index.writeToFile(filepath, logger);
+
+		logger.info("Finished creation of surface form index. File at " + filepath);
 	}
 
-	private static void runSenseIndexGenerator(JsonGenerator jsonGenerator,
-			ConcurrentMap<String, Integer> distinctSurfaceForms) {
-		// TODO Auto-generated method stub
+	private static void runSenseIndexGenerator(ConcurrentMap<String, Integer> distinctSurfaceForms) {
 
+		logger.info("> Start creation of sense index...");
+
+		// Instantiate Dump Processor Controller for Index Generator
+		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
+		dumpProcessingController.setOfflineMode(true);
+
+		// Instantiale Index Generator and Timer Processor
+		IndexGeneratorBySense indexGenerator = new IndexGeneratorBySense(logger);
+		dumpProcessingController.registerEntityDocumentProcessor(indexGenerator, null, true);
+		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
+		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
+
+		dumpProcessingController.processDump(mwDumpFile);
+
+		entityTimerProcessor.close();
+
+		// indexGenerator.generateIndex();
+		Index<SenseBlock> index = indexGenerator.getIndex();
+
+		// writeToFile
+		String filepath = OUTPUT_PATH + Helper.getTimeStamp() + SENSE_INDEX_FILE;
+		index.writeToFile(filepath, logger);
+		// indexGeneratorByEntity.writeToFile(filepath);
+
+		logger.info("Finished creation of sense index. File at " + filepath);
 	}
 
 }

@@ -1,6 +1,5 @@
 package de.sampri.wd2xlisa;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,9 +14,8 @@ import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 import org.wikidata.wdtk.wikibaseapi.WikibaseDataFetcher;
 import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-
 import de.sampri.wd2xlisa.model.EntityBlock;
+import de.sampri.wd2xlisa.model.Index;
 
 public class IndexGeneratorByEntity
 		implements EntityDocumentProcessor /* implements IndexGenerator */ {
@@ -36,13 +34,10 @@ public class IndexGeneratorByEntity
 	 */
 	int distinctSitelinks;
 
-	private JsonGenerator jsonGen;
+	Index<EntityBlock> index = new Index<EntityBlock>();
 
-	List<EntityBlock> entities = new ArrayList<EntityBlock>();
-
-	public IndexGeneratorByEntity(Logger logger, JsonGenerator jsonGen, int distinctSitelinks) {
+	public IndexGeneratorByEntity(Logger logger, int distinctSitelinks) {
 		this.logger = logger;
-		this.jsonGen = jsonGen;
 		this.distinctSitelinks = distinctSitelinks;
 	}
 
@@ -51,11 +46,11 @@ public class IndexGeneratorByEntity
 
 	public void processItemDocument(ItemDocument itemDocument) {
 		EntityBlock entity = retrieveResult(itemDocument);
-		entities.add(entity);
+		index.add(entity);
 		// writeToIndex(entityBlock);
 
 		this.itemCount++;
-		if (this.itemCount % 1000000 == 0) {
+		if (this.itemCount % Helper.LOGGING_DEPTH == 0) {
 			logStatus();
 		}
 	}
@@ -66,7 +61,7 @@ public class IndexGeneratorByEntity
 			EntityDocument entityDocument = wbdf.getEntityDocument(itemId);
 			if (entityDocument instanceof ItemDocument) {
 				EntityBlock entity = retrieveResult((ItemDocument) entityDocument);
-				entities.add(entity);
+				index.add(entity);
 				// writeToIndex(entityBlock);
 			}
 		} catch (MediaWikiApiErrorException e) {
@@ -82,7 +77,7 @@ public class IndexGeneratorByEntity
 		EntityBlock entity = new EntityBlock();
 
 		// ID
-		entity.setId(itemDocument.getItemId().getId());
+		entity.setEntity(itemDocument.getItemId().getId());
 
 		// Surface forms
 		// TODO Werden hier erstmal nicht mehr gebraucht
@@ -104,7 +99,7 @@ public class IndexGeneratorByEntity
 	 *            The item which surface forms should be retrieved.
 	 * @return All surface forms of the item grouped by language.
 	 */
-	private HashMap<String, List<String>> retrieveSurfaceForms(ItemDocument itemDocument) {
+	public HashMap<String, List<String>> retrieveSurfaceForms(ItemDocument itemDocument) {
 		HashMap<String, List<String>> surfaceForms = new HashMap<String, List<String>>();
 		// TODO Als Statisik abspeichern
 		// int surfaceFormsCount = 0;
@@ -136,25 +131,12 @@ public class IndexGeneratorByEntity
 		return surfaceForms;
 	}
 
-	public void writeToFile(String filepath) {
-		logger.info("Write entity index to file (" + filepath + ")...");
+	public void generateIndex() {
+		// already done during processing the dump
+	}
 
-		int count = 0;
-
-		try {
-			for (EntityBlock entity : entities) {
-				jsonGen.writeObject(entity);
-				jsonGen.writeRaw(",\n");
-				count++;
-				if (count % 1000000 == 0) {
-					logger.info("Written " + count + " entities to file.");
-				}
-			}
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		}
-
-		logger.info("All entities written to index (" + filepath + ").");
+	public Index<EntityBlock> getIndex() {
+		return index;
 	}
 
 }

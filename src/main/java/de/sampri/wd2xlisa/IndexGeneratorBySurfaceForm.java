@@ -1,34 +1,25 @@
 package de.sampri.wd2xlisa;
 
-import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
-import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 
-public class IndexGeneratorBySurfaceForm implements IndexGenerator {
+import de.sampri.wd2xlisa.model.Index;
+import de.sampri.wd2xlisa.model.SurfaceFormBlock;
 
-	public void processItemDocument(ItemDocument itemDocument) {
-		IndexSurfaceForm indexSurfaceForm = retrieveResult(itemDocument);
-		writeToIndex(indexSurfaceForm);
+public class IndexGeneratorBySurfaceForm {
+
+	private Index<SurfaceFormBlock> index = new Index<SurfaceFormBlock>();
+
+	public void generateIndex(ConcurrentMap<String, Integer> distinctSurfaceForms) {
+		for (Map.Entry<String, Integer> sf : distinctSurfaceForms.entrySet()) {
+//			SurfaceFormBlock block = new SurfaceFormBlock(sf.getKey(), sf.getValue());
+			SurfaceFormBlock block = new SurfaceFormBlock(sf.getKey(), 0);
+			index.add(block);
+		}
 	}
 
-	public void processPropertyDocument(PropertyDocument propertyDocument) {
-	}
-
-	public void processItemDocumentById(String itemId) {
-	}
-
-	public IndexSurfaceForm retrieveResult(ItemDocument itemDocument) {
-		IndexSurfaceForm indexSurfaceForm = new IndexSurfaceForm();
-
-		// TODO Zuerst brauche ich eine Liste aller SF, dann kann ich über die
-		// Entities iterieren und für jede dabei vorkommende SF die Entität zum
-		// Index hinzufügen.
-
-		return indexSurfaceForm;
-	}
-
-	public void writeToIndex(IndexElement indexElement) {
-		// TODO Auto-generated method stub
-
+	public Index<SurfaceFormBlock> getIndex() {
+		return index;
 	}
 
 }

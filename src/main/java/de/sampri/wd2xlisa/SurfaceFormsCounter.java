@@ -79,7 +79,7 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 			}
 		}
 
-		if (stat.countEntities % 100000 == 0) {
+		if (stat.countEntities % Helper.LOGGING_DEPTH == 0) {
 			logStatus();
 			// printStatus();
 		}
@@ -137,7 +137,7 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 			for (Map.Entry<String, Integer> entry : surfaceForms.entrySet()) {
 				writer.append(entry.getKey()).append(',').append(entry.getValue().toString()).append(eol);
 				count++;
-				if (count % 1000000 == 0) {
+				if (count % Helper.LOGGING_DEPTH == 0) {
 					logger.info("Written " + count + " surface forms to file.");
 				}
 			}

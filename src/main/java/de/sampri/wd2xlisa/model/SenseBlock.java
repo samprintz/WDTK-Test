@@ -2,10 +2,43 @@ package de.sampri.wd2xlisa.model;
 
 public class SenseBlock implements Block {
 
-	String id;
+	private String entity;
 
-	String surfaceForm;
+	private String surfaceForm;
 
-	double probability;
+	private double probability;
+
+	public SenseBlock() {
+	}
+
+	public SenseBlock(String entity, String surfaceForm, double probability) {
+		this.entity = entity;
+		this.surfaceForm = surfaceForm;
+		this.probability = probability;
+	}
+
+	public String getEntity() {
+		return entity;
+	}
+
+	public void setId(String entity) {
+		this.entity = entity;
+	}
+
+	public String getSurfaceForm() {
+		return surfaceForm;
+	}
+
+	public void setSurfaceForm(String surfaceForm) {
+		this.surfaceForm = surfaceForm;
+	}
+
+	public double getProbability() {
+		return probability;
+	}
+
+	public void setProbability(double probability) {
+		this.probability = probability;
+	}
 
 }
