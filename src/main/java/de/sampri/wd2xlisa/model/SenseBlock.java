@@ -6,13 +6,16 @@ public class SenseBlock implements Block {
 
 	private String surfaceForm;
 
+	private String language;
+
 	private double probability;
 
 	public SenseBlock() {
 	}
 
-	public SenseBlock(String entity, String surfaceForm, double probability) {
+	public SenseBlock(String entity, String surfaceForm, String language, double probability) {
 		this.entity = entity;
+		this.language = language;
 		this.surfaceForm = surfaceForm;
 		this.probability = probability;
 	}
@@ -39,6 +42,14 @@ public class SenseBlock implements Block {
 
 	public void setProbability(double probability) {
 		this.probability = probability;
+	}
+
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
 	}
 
 }

@@ -21,7 +21,7 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 
 	Logger logger;
 
-	class SurfaceFormStatistics {
+	public class SurfaceFormStatistics {
 		long countEntities = 0;
 		long countItems = 0;
 		long countProperties = 0;

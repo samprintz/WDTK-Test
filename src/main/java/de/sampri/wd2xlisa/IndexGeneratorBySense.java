@@ -2,7 +2,7 @@ package de.sampri.wd2xlisa;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
@@ -17,50 +17,89 @@ public class IndexGeneratorBySense implements EntityDocumentProcessor {
 
 	Logger logger;
 
+	public class Statistics {
+		long countEntities = 0;
+		long countItems = 0;
+		long countProperties = 0;
+		long countLabels = 0;
+		long countDistinctLabels = 0;
+		long countAliases = 0;
+		long countDistinctAliases = 0;
+		long countSurfaceForms = 0;
+		long countDistinctSurfaceForms = 0;
+	}
+
 	Index<SenseBlock> index = new Index<SenseBlock>();
+
+	Statistics stat = new Statistics();
 
 	public IndexGeneratorBySense(Logger logger) {
 		this.logger = logger;
 	}
 
 	public void processPropertyDocument(PropertyDocument propertyDocument) {
+		stat.countEntities++;
+		stat.countProperties++;
 	}
 
 	public void processItemDocument(ItemDocument itemDocument) {
-		List<String> surfaceForms = getSurfaceForms(itemDocument);
+		stat.countEntities++;
+		stat.countItems++;
 
-		for (String surfaceForm : surfaceForms) {
+		List<SFEntry> surfaceForms = getSurfaceForms(itemDocument);
+
+		for (SFEntry surfaceForm : surfaceForms) {
 			SenseBlock block = new SenseBlock();
 			block.setId(itemDocument.getItemId().getId());
-			block.setSurfaceForm(surfaceForm);
+			block.setLanguage(surfaceForm.getLanguage());
+			block.setSurfaceForm(surfaceForm.getText());
 			block.setProbability(0);
 			index.add(block);
 		}
 	}
 
-	private List<String> getSurfaceForms(ItemDocument itemDocument) {
-		List<String> surfaceForms = new ArrayList<String>();
+	private List<SFEntry> getSurfaceForms(ItemDocument itemDocument) {
+		List<SFEntry> surfaceForms = new ArrayList<SFEntry>();
 
-		Map<String, MonolingualTextValue> labels = itemDocument.getLabels();
-		Map<String, List<MonolingualTextValue>> aliases = itemDocument.getAliases();
+		// Get for all available languages
+		Set<String> languages = itemDocument.getLabels().keySet();
 
-		for (MonolingualTextValue Mtvlabel : labels.values()) {
-			String label = Mtvlabel.getText();
-			if (!surfaceForms.contains(label)) {
-				surfaceForms.add(label);
+		for (String language : languages) {
+			// Label
+			String label = itemDocument.findLabel(language);
+			if (label != null) {
+				SFEntry entry = new SFEntry(label, language);
+				surfaceForms.add(entry);
+				stat.countSurfaceForms++;
+				stat.countLabels++;
 			}
-		}
 
-		for (List<MonolingualTextValue> aliasesLangSpec : aliases.values()) {
-			for (MonolingualTextValue MtvAlias : aliasesLangSpec) {
-				String alias = MtvAlias.getText();
-				if (surfaceForms.contains(alias)) {
-					surfaceForms.add(alias);
+			// Aliases
+			List<MonolingualTextValue> aliases = itemDocument.getAliases().get(language);
+			if (aliases != null) {
+				for (MonolingualTextValue alias : aliases) {
+					SFEntry entry = new SFEntry(alias.getText(), language);
+					surfaceForms.add(entry);
+					stat.countSurfaceForms++;
+					stat.countAliases++;
 				}
 			}
 		}
 
+		if (stat.countEntities % Helper.LOGGING_DEPTH == 0) {
+			logStatus();
+		}
+
 		return surfaceForms;
+	}
+
+	public void logStatus() {
+		logger.info("Processed " + stat.countEntities + " entities (" + stat.countItems + " Q, " + stat.countProperties
+				+ " P) and counted " + stat.countDistinctSurfaceForms + " distinct surface forms.");
+
+		logger.debug("Of the " + stat.countSurfaceForms + " surface forms (" + stat.countDistinctSurfaceForms
+				+ " distinct), " + stat.countLabels + " were labels (" + stat.countDistinctLabels + " distinct) and "
+				+ stat.countAliases + " aliases (" + stat.countDistinctAliases + " distinct).");
 	}
 
 	public void generateIndex() {
