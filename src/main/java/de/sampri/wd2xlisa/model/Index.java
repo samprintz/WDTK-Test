@@ -37,7 +37,7 @@ public class Index<T> {
 
 				count++;
 				if (count % Helper.LOGGING_DEPTH == 0) {
-					logger.info("Written " + count + " entities to file.");
+					logger.info("Written " + count + " blocks to file.");
 				}
 			}
 
@@ -47,6 +47,10 @@ public class Index<T> {
 		}
 
 		logger.info("All blocks written to index (" + filepath + ").");
+	}
+	
+	public String toString() {
+		return this.blocks.toString();
 	}
 
 }

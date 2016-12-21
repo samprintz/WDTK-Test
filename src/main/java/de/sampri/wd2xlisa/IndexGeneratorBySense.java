@@ -1,6 +1,5 @@
 package de.sampri.wd2xlisa;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -46,30 +45,15 @@ public class IndexGeneratorBySense implements EntityDocumentProcessor {
 		stat.countEntities++;
 		stat.countItems++;
 
-		List<SFEntry> surfaceForms = getSurfaceForms(itemDocument);
-
-		for (SFEntry surfaceForm : surfaceForms) {
-			SenseBlock block = new SenseBlock();
-			block.setId(itemDocument.getItemId().getId());
-			block.setLanguage(surfaceForm.getLanguage());
-			block.setSurfaceForm(surfaceForm.getText());
-			block.setProbability(0);
-			index.add(block);
-		}
-	}
-
-	private List<SFEntry> getSurfaceForms(ItemDocument itemDocument) {
-		List<SFEntry> surfaceForms = new ArrayList<SFEntry>();
-
 		// Get for all available languages
 		Set<String> languages = itemDocument.getLabels().keySet();
-
 		for (String language : languages) {
+
 			// Label
 			String label = itemDocument.findLabel(language);
 			if (label != null) {
-				SFEntry entry = new SFEntry(label, language);
-				surfaceForms.add(entry);
+				SenseBlock block = new SenseBlock(itemDocument.getItemId().getId(), label, language, 0);
+				index.add(block);
 				stat.countSurfaceForms++;
 				stat.countLabels++;
 			}
@@ -78,8 +62,8 @@ public class IndexGeneratorBySense implements EntityDocumentProcessor {
 			List<MonolingualTextValue> aliases = itemDocument.getAliases().get(language);
 			if (aliases != null) {
 				for (MonolingualTextValue alias : aliases) {
-					SFEntry entry = new SFEntry(alias.getText(), language);
-					surfaceForms.add(entry);
+					SenseBlock block = new SenseBlock(itemDocument.getItemId().getId(), alias.getText(), language, 0);
+					index.add(block);
 					stat.countSurfaceForms++;
 					stat.countAliases++;
 				}
@@ -89,8 +73,6 @@ public class IndexGeneratorBySense implements EntityDocumentProcessor {
 		if (stat.countEntities % Helper.LOGGING_DEPTH == 0) {
 			logStatus();
 		}
-
-		return surfaceForms;
 	}
 
 	public void logStatus() {

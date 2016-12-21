@@ -31,9 +31,9 @@ public class Main {
 	/**
 	 * The dump which entites should be processed.
 	 */
-	private final static String DUMP_FILE = "src/main/resources/20161031.json.gz";
-	// private final static String DUMP_FILE =
-	// "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
+//	private final static String DUMP_FILE = "src/main/resources/20161031.json.gz";
+	 private final static String DUMP_FILE =
+	 "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
 
 	/**
 	 * Contains the dump file
@@ -83,22 +83,24 @@ public class Main {
 		logger.info("=== Preprocessing ===");
 
 		// Count Sitelinks
-		int distinctSitelinks = getDistinctSitelinks();
+		// int distinctSitelinks = getDistinctSitelinks();
 
 		// Get all Surface Forms
-		ConcurrentMap<String, Integer> distinctSurfaceForms = getDistinctSurfaceForms();
+		// ConcurrentMap<String, Integer> distinctSurfaceForms =
+		// getDistinctSurfaceForms();
 
 		logger.info("");
 		logger.info("=== Processing ===");
 
 		// Create Entity Index
-		runEntityIndexGenerator(distinctSitelinks);
+		// runEntityIndexGenerator(distinctSitelinks);
 
 		// Create Surface Form Index
-		runSurfaceFormIndexGenerator(distinctSurfaceForms);
+		// runSurfaceFormIndexGenerator(distinctSurfaceForms);
 
 		// Create Sense Index
-		runSenseIndexGenerator(distinctSurfaceForms);
+		// runSenseIndexGenerator(distinctSurfaceForms);
+		runSenseIndexGenerator();
 
 		logger.info("");
 		logger.info("Done.");
@@ -215,7 +217,7 @@ public class Main {
 		logger.info("Finished creation of surface form index. File at " + filepath);
 	}
 
-	private static void runSenseIndexGenerator(ConcurrentMap<String, Integer> distinctSurfaceForms) {
+	private static void runSenseIndexGenerator() {
 
 		logger.info("> Start creation of sense index...");
 

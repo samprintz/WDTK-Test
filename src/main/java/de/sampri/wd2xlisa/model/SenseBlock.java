@@ -51,5 +51,9 @@ public class SenseBlock implements Block {
 	public void setLanguage(String language) {
 		this.language = language;
 	}
+	
+	public String toString() {
+		return "{" + this.entity + ", " + this.surfaceForm + "(" + this.language + "), " + this.probability + "}";
+	}
 
 }
