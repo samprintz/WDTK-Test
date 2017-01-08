@@ -17,6 +17,10 @@ import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 import de.sampri.wd2xlisa.model.EntityBlock;
 import de.sampri.wd2xlisa.model.Index;
 
+/**
+ * Class for creating an {@link Index} of {@link EntityBlock}s, containing
+ * blocks for all entities of a Wikidata dump.
+ */
 public class IndexGeneratorByEntity
 		implements EntityDocumentProcessor /* implements IndexGenerator */ {
 
@@ -34,6 +38,9 @@ public class IndexGeneratorByEntity
 	 */
 	int distinctSitelinks;
 
+	/**
+	 * All entity blocks are stored in this index.
+	 */
 	Index<EntityBlock> index = new Index<EntityBlock>();
 
 	public IndexGeneratorByEntity(Logger logger, int distinctSitelinks) {

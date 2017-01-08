@@ -17,10 +17,16 @@ import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 
+/**
+ * Class for retrieving all distinct surface forms in a Wikidata dump.
+ */
 public class SurfaceFormsCounter implements EntityDocumentProcessor {
 
 	Logger logger;
 
+	/**
+	 * Statistics about the dump.
+	 */
 	public class SurfaceFormStatistics {
 		long countEntities = 0;
 		long countItems = 0;
@@ -33,6 +39,9 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		long countDistinctSurfaceForms = 0;
 	}
 
+	/**
+	 * List of all distinct surface forms with the frequency they appear.
+	 */
 	// HashMap<String, Integer> surfaceForms = new HashMap<String, Integer>();
 	// DB db = DBMaker.memoryDB("results/file.db").make();
 	DB db = DBMaker.memoryDB().make();
@@ -51,6 +60,7 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		Map<String, MonolingualTextValue> labels = itemDocument.getLabels();
 		Map<String, List<MonolingualTextValue>> aliases = itemDocument.getAliases();
 
+		// Label
 		for (MonolingualTextValue Mtvlabel : labels.values()) {
 			String label = Mtvlabel.getText();
 			stat.countLabels++;
@@ -64,6 +74,7 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 			}
 		}
 
+		// Aliases
 		for (List<MonolingualTextValue> aliasesLangSpec : aliases.values()) {
 			for (MonolingualTextValue MtvAlias : aliasesLangSpec) {
 				String alias = MtvAlias.getText();
@@ -114,10 +125,18 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		System.out.println("HashMap Size: " + surfaceForms.size());
 	}
 
+	/**
+	 * Print list of all distinct surface forms in the dump. Use with care (only
+	 * for testing), the list might be huge.
+	 */
 	public void printList() {
 		System.out.println(surfaceForms.toString().replaceAll(",", ",\n"));
 	}
 
+	/**
+	 * Print a sorted list of all distinct surface forms in the dump. Use with
+	 * care (only for testing), the list might be huge.
+	 */
 	public void printSortedList() {
 		Collection<String> unsorted = surfaceForms.keySet();
 		List<String> sorted = SitelinksCounter.asSortedList(unsorted);
@@ -125,6 +144,13 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		// System.out.println(sorted.toString());
 	}
 
+	/**
+	 * Generates text file from the surface form list and writes it to
+	 * {@code filepath}.
+	 * 
+	 * @param filepath
+	 *            The results will be written here.
+	 */
 	public void writeToFile(String filepath) {
 		logger.info("Write surface forms to file (" + filepath + ")...");
 
@@ -147,11 +173,18 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 			ex.printStackTrace(System.err);
 		}
 
-//		db.close();
+		// db.close();
 
 		logger.info("All surface forms written to file (" + filepath + ").");
 	}
 
+	/**
+	 * Returns the the list of all distinct surface forms with the frequency
+	 * they appear.
+	 * 
+	 * @return the the list of all distinct surface forms with the frequency
+	 *         they appear.
+	 */
 	public ConcurrentMap<String, Integer> getResult() {
 		return this.surfaceForms;
 	}

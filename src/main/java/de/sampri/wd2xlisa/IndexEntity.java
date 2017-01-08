@@ -6,6 +6,9 @@ import java.util.List;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Deprecated
+ */
 public class IndexEntity extends IndexElement {
 
 	// TODO properties private machen (war für json serialization) + getter &

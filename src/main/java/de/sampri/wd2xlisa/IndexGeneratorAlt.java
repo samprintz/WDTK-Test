@@ -28,6 +28,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Deprecated.
+ */
 public class IndexGeneratorAlt implements IndexGenerator {
 
 	/**

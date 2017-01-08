@@ -16,16 +16,31 @@ import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class Helper {
-	
+
 	/**
-	 * While processing items, this is the number of items after each the status is logged.
+	 * While processing items, this is the number of items after each the status
+	 * is logged.
 	 */
 	public static final int LOGGING_DEPTH = 1000000;
 
+	/**
+	 * Returns current time stamp. Please use as prefix for log and result
+	 * output.
+	 * 
+	 * @return current time stamp.
+	 */
 	static String getTimeStamp() {
 		return new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
 	}
 
+	/**
+	 * Returns JSON generator for writing index results to file.
+	 * 
+	 * @param filepath
+	 *            the results will be written here.
+	 * @param logger
+	 * @return JSON generator for writing index results to file.
+	 */
 	public static JsonGenerator getJsonGenerator(String filepath, Logger logger) {
 		JsonGenerator jsonGenerator = null;
 		try {
