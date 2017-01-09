@@ -2,6 +2,7 @@ package de.sampri.wd2xlisa;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.log4j.ConsoleAppender;
@@ -31,9 +32,9 @@ public class Main {
 	/**
 	 * The dump which entites should be processed.
 	 */
-//	private final static String DUMP_FILE = "src/main/resources/20161031.json.gz";
-	 private final static String DUMP_FILE =
-	 "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
+	// private final static String DUMP_FILE =
+	// "src/main/resources/20161031.json.gz";
+	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
 
 	/**
 	 * Contains the dump file
@@ -83,24 +84,26 @@ public class Main {
 		logger.info("=== Preprocessing ===");
 
 		// Count Sitelinks
-		// int distinctSitelinks = getDistinctSitelinks();
+//		int distinctSitelinks = getDistinctSitelinks();
 
-		// Get all Surface Forms
-		// ConcurrentMap<String, Integer> distinctSurfaceForms =
-		// getDistinctSurfaceForms();
+		// Get all distinct Surface Forms
+//		ConcurrentMap<String, Integer> distinctSurfaceForms = getDistinctSurfaceForms();
+
+		// Get for each language all distinct Surface Forms
+		HashMap<String, ConcurrentMap<String, Integer>> distinctSurfaceFormsByLang = getDistinctSurfaceFormsByLang();
 
 		logger.info("");
 		logger.info("=== Processing ===");
 
 		// Create Entity Index
-		// runEntityIndexGenerator(distinctSitelinks);
+//		runEntityIndexGenerator(distinctSitelinks);
 
 		// Create Surface Form Index
-		// runSurfaceFormIndexGenerator(distinctSurfaceForms);
+//		runSurfaceFormIndexGenerator(distinctSurfaceForms);
 
 		// Create Sense Index
-		// runSenseIndexGenerator(distinctSurfaceForms);
-		runSenseIndexGenerator();
+		// TODO mit der neuen Liste von Surface Forms nach Sprache die 1/n berechnen
+//		runSenseIndexGenerator();
 
 		logger.info("");
 		logger.info("Done.");
@@ -166,12 +169,35 @@ public class Main {
 
 		surfaceFormsCounter.logStatus();
 
-		// String filepath = OUTPUT_PATH + Helper.getTimeStamp() + SFFORM_FILE;
-		// surfaceFormsCounter.writeToFile(filepath);
-
 		logger.info("Finished collecting of distinct surface forms.");
 
 		return surfaceFormsCounter.getResult();
+	}
+
+	private static HashMap<String, ConcurrentMap<String, Integer>> getDistinctSurfaceFormsByLang() {
+		logger.info("> Start collecting distinct surface forms for each language...");
+
+		// Instantiate Dump Processor Controller for SurfaceForms Counter
+		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
+		dumpProcessingController.setOfflineMode(true);
+
+		// Instantiate SurfaceForms Counter
+		SurfaceFormsCollectorByLang surfaceFormsCollectorByLang = new SurfaceFormsCollectorByLang(logger);
+		dumpProcessingController.registerEntityDocumentProcessor(surfaceFormsCollectorByLang, null, true);
+		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
+		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
+
+		dumpProcessingController.processDump(mwDumpFile);
+
+		entityTimerProcessor.close();
+
+		surfaceFormsCollectorByLang.logStatus();
+		
+//		surfaceFormsCollectorByLang.printSortedList();
+
+		logger.info("Finished collecting of distinct surface forms for each language.");
+
+		return surfaceFormsCollectorByLang.getResult();
 	}
 
 	private static void runEntityIndexGenerator(int distinctSitelinks) {

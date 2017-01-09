@@ -21,8 +21,7 @@ public class IndexGeneratorBySurfaceForm {
 		for (Map.Entry<String, Integer> sf : distinctSurfaceForms.entrySet()) {
 			// SurfaceFormBlock block = new SurfaceFormBlock(sf.getKey(),
 			// sf.getValue());
-			// TODO 0 durch 1 ersetzen
-			SurfaceFormBlock block = new SurfaceFormBlock(sf.getKey(), 0);
+			SurfaceFormBlock block = new SurfaceFormBlock(sf.getKey(), 1);
 			index.add(block);
 		}
 	}

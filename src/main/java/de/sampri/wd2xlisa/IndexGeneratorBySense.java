@@ -71,6 +71,8 @@ public class IndexGeneratorBySense implements EntityDocumentProcessor {
 			}
 
 			// Aliases
+			// TODO Aliases haben meist deutlich kleineres keySet als Labels,
+			// evtl. wie in SurfaceFormsCollectorByLang anpassen
 			List<MonolingualTextValue> aliases = itemDocument.getAliases().get(language);
 			if (aliases != null) {
 				for (MonolingualTextValue alias : aliases) {
