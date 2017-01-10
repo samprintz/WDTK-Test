@@ -87,10 +87,11 @@ public class Main {
 		// int distinctSitelinks = getDistinctSitelinks();
 
 		// Get all distinct Surface Forms
-//		ConcurrentMap<String, Integer> distinctSurfaceForms = getDistinctSurfaceForms();
+		ConcurrentMap<String, Integer> distinctSurfaceForms = getDistinctSurfaceForms();
 
 		// Get for each language all distinct Surface Forms
-		HashMap<String, ConcurrentMap<String, Integer>> distinctSurfaceFormsByLang = getDistinctSurfaceFormsByLang();
+		// HashMap<String, ConcurrentMap<String, Integer>>
+		// distinctSurfaceFormsByLang = getDistinctSurfaceFormsByLang();
 
 		logger.info("");
 		logger.info("=== Processing ===");
@@ -99,10 +100,10 @@ public class Main {
 		// runEntityIndexGenerator(distinctSitelinks);
 
 		// Create Surface Form Index
-//		runSurfaceFormIndexGenerator(distinctSurfaceForms);
+		runSurfaceFormIndexGenerator(distinctSurfaceForms);
 
 		// Create Sense Index
-		runSenseIndexGenerator(distinctSurfaceFormsByLang);
+		// runSenseIndexGenerator(distinctSurfaceFormsByLang);
 
 		logger.info("");
 		logger.info("Done.");

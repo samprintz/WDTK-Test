@@ -57,12 +57,16 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 		stat.countEntities++;
 		stat.countItems++;
 
-		Map<String, MonolingualTextValue> labels = itemDocument.getLabels();
-		Map<String, List<MonolingualTextValue>> aliases = itemDocument.getAliases();
+//		Map<String, MonolingualTextValue> labels = itemDocument.getLabels();
+//		Map<String, List<MonolingualTextValue>> aliases = itemDocument.getAliases();
+		String language = "en";
+		String label = itemDocument.findLabel(language);
+		List<MonolingualTextValue> aliasesLangSpec = itemDocument.getAliases().get(language);
 
 		// Label
-		for (MonolingualTextValue Mtvlabel : labels.values()) {
-			String label = Mtvlabel.getText();
+//		for (MonolingualTextValue Mtvlabel : labels.values()) {
+//			String label = Mtvlabel.getText();
+		if (label != null) {
 			stat.countLabels++;
 			stat.countSurfaceForms++;
 			if (surfaceForms.containsKey(label)) {
@@ -73,9 +77,11 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 				stat.countDistinctSurfaceForms++;
 			}
 		}
+//		}
 
 		// Aliases
-		for (List<MonolingualTextValue> aliasesLangSpec : aliases.values()) {
+//		for (List<MonolingualTextValue> aliasesLangSpec : aliases.values()) {
+		if (aliasesLangSpec != null) {
 			for (MonolingualTextValue MtvAlias : aliasesLangSpec) {
 				String alias = MtvAlias.getText();
 				stat.countSurfaceForms++;
@@ -89,6 +95,7 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 				}
 			}
 		}
+//		}
 
 		if (stat.countEntities % Helper.LOGGING_DEPTH == 0) {
 			logStatus();

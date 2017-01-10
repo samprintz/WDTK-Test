@@ -2,7 +2,7 @@ package de.sampri.wd2xlisa;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+//import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.log4j.Logger;
@@ -62,22 +62,24 @@ public class IndexGeneratorBySense implements EntityDocumentProcessor {
 		stat.countItems++;
 
 		// Label
-		Set<String> labelLanguages = itemDocument.getLabels().keySet();
-		for (String language : labelLanguages) {
-			String label = itemDocument.findLabel(language);
-			if (label != null) {
-				int n = distinctSurfaceFormsByLang.get(language).get(label);
-				SenseBlock block = new SenseBlock(itemDocument.getItemId().getId(), label, language, 1.0 / n);
-				index.add(block);
-				stat.countSurfaceForms++;
-				stat.countLabels++;
-			}
+		// Set<String> labelLanguages = itemDocument.getLabels().keySet();
+		// for (String language : labelLanguages) {
+		String language = "en";
+		String label = itemDocument.findLabel(language);
+		if (label != null) {
+			int n = distinctSurfaceFormsByLang.get(language).get(label);
+			SenseBlock block = new SenseBlock(itemDocument.getItemId().getId(), label, language, 1.0 / n);
+			index.add(block);
+			stat.countSurfaceForms++;
+			stat.countLabels++;
 		}
+		// }
 
 		// Aliases
-		Set<String> aliasesLanguages = itemDocument.getAliases().keySet();
-		for (String language : aliasesLanguages) {
-			List<MonolingualTextValue> aliases = itemDocument.getAliases().get(language);
+		// Set<String> aliasesLanguages = itemDocument.getAliases().keySet();
+		// for (String language : aliasesLanguages) {
+		List<MonolingualTextValue> aliases = itemDocument.getAliases().get(language);
+		if (aliases != null) {
 			for (MonolingualTextValue mtv : aliases) {
 				if (mtv != null) {
 					String alias = mtv.getText();
@@ -89,6 +91,7 @@ public class IndexGeneratorBySense implements EntityDocumentProcessor {
 				}
 			}
 		}
+		// }
 
 		if (stat.countEntities % Helper.LOGGING_DEPTH == 0) {
 			logStatus();
