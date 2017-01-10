@@ -32,9 +32,9 @@ public class Main {
 	/**
 	 * The dump which entites should be processed.
 	 */
+	private final static String DUMP_FILE = "src/main/resources/20161031.json.gz";
 	// private final static String DUMP_FILE =
-	// "src/main/resources/20161031.json.gz";
-	private final static String DUMP_FILE = "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
+	// "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
 
 	/**
 	 * Contains the dump file
@@ -84,7 +84,7 @@ public class Main {
 		logger.info("=== Preprocessing ===");
 
 		// Count Sitelinks
-//		int distinctSitelinks = getDistinctSitelinks();
+		// int distinctSitelinks = getDistinctSitelinks();
 
 		// Get all distinct Surface Forms
 //		ConcurrentMap<String, Integer> distinctSurfaceForms = getDistinctSurfaceForms();
@@ -96,14 +96,13 @@ public class Main {
 		logger.info("=== Processing ===");
 
 		// Create Entity Index
-//		runEntityIndexGenerator(distinctSitelinks);
+		// runEntityIndexGenerator(distinctSitelinks);
 
 		// Create Surface Form Index
 //		runSurfaceFormIndexGenerator(distinctSurfaceForms);
 
 		// Create Sense Index
-		// TODO mit der neuen Liste von Surface Forms nach Sprache die 1/n berechnen
-//		runSenseIndexGenerator();
+		runSenseIndexGenerator(distinctSurfaceFormsByLang);
 
 		logger.info("");
 		logger.info("Done.");
@@ -130,6 +129,7 @@ public class Main {
 
 	private static int getDistinctSitelinks() {
 		logger.info("> Start counting of distinct sitelinks...");
+		long startTime = System.nanoTime();
 
 		// Instantiate Dump Processor Controller for Sitelinks Counter
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
@@ -145,13 +145,16 @@ public class Main {
 
 		entityTimerProcessor.close();
 
-		logger.info("Finished counting of distinct sitelinks.");
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime) / 1000000;
+		logger.info("Finished counting of distinct sitelinks (" + duration + " ms).");
 
 		return sitelinksCounter.getResult();
 	}
 
 	private static ConcurrentMap<String, Integer> getDistinctSurfaceForms() {
 		logger.info("> Start collecting distinct surface forms...");
+		long startTime = System.nanoTime();
 
 		// Instantiate Dump Processor Controller for SurfaceForms Counter
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
@@ -169,13 +172,16 @@ public class Main {
 
 		surfaceFormsCounter.logStatus();
 
-		logger.info("Finished collecting of distinct surface forms.");
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime) / 1000000;
+		logger.info("Finished collecting of distinct surface forms (" + duration + " ms).");
 
 		return surfaceFormsCounter.getResult();
 	}
 
 	private static HashMap<String, ConcurrentMap<String, Integer>> getDistinctSurfaceFormsByLang() {
 		logger.info("> Start collecting distinct surface forms for each language...");
+		long startTime = System.nanoTime();
 
 		// Instantiate Dump Processor Controller for SurfaceForms Counter
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
@@ -192,16 +198,19 @@ public class Main {
 		entityTimerProcessor.close();
 
 		surfaceFormsCollectorByLang.logStatus();
-		
-//		surfaceFormsCollectorByLang.printSortedList();
 
-		logger.info("Finished collecting of distinct surface forms for each language.");
+		// surfaceFormsCollectorByLang.printSortedList();
+
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime) / 1000000;
+		logger.info("Finished collecting of distinct surface forms for each language (" + duration + " ms).");
 
 		return surfaceFormsCollectorByLang.getResult();
 	}
 
 	private static void runEntityIndexGenerator(int distinctSitelinks) {
 		logger.info("> Start creation of entity index...");
+		long startTime = System.nanoTime();
 
 		// Instantiate Dump Processor Controller for Index Generator
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
@@ -225,13 +234,16 @@ public class Main {
 		index.writeToFile(filepath, logger);
 		// indexGeneratorByEntity.writeToFile(filepath);
 
-		logger.info("Finished creation of entity index. File at " + filepath);
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime) / 1000000;
+		logger.info("Finished creation of entity index (" + duration + " ms). File at " + filepath);
 
 		// indexGeneratorByEntity.processItemDocumentById("Q1726");
 	}
 
 	private static void runSurfaceFormIndexGenerator(ConcurrentMap<String, Integer> distinctSurfaceForms) {
 		logger.info("> Start creation of surface form index...");
+		long startTime = System.nanoTime();
 
 		IndexGeneratorBySurfaceForm indexGenerator = new IndexGeneratorBySurfaceForm();
 		indexGenerator.generateIndex(distinctSurfaceForms);
@@ -240,19 +252,23 @@ public class Main {
 		String filepath = OUTPUT_PATH + Helper.getTimeStamp() + SFFORM_INDEX_FILE;
 		index.writeToFile(filepath, logger);
 
-		logger.info("Finished creation of surface form index. File at " + filepath);
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime) / 1000000;
+		logger.info("Finished creation of surface form index (" + duration + " ms). File at " + filepath);
 	}
 
-	private static void runSenseIndexGenerator() {
+	private static void runSenseIndexGenerator(
+			HashMap<String, ConcurrentMap<String, Integer>> distinctSurfaceFormsByLang) {
 
 		logger.info("> Start creation of sense index...");
+		long startTime = System.nanoTime();
 
 		// Instantiate Dump Processor Controller for Index Generator
 		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
 		dumpProcessingController.setOfflineMode(true);
 
 		// Instantiale Index Generator and Timer Processor
-		IndexGeneratorBySense indexGenerator = new IndexGeneratorBySense(logger);
+		IndexGeneratorBySense indexGenerator = new IndexGeneratorBySense(logger, distinctSurfaceFormsByLang);
 		dumpProcessingController.registerEntityDocumentProcessor(indexGenerator, null, true);
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
@@ -269,7 +285,9 @@ public class Main {
 		index.writeToFile(filepath, logger);
 		// indexGeneratorByEntity.writeToFile(filepath);
 
-		logger.info("Finished creation of sense index. File at " + filepath);
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime) / 1000000;
+		logger.info("Finished creation of sense index (" + duration + " ms). File at " + filepath);
 	}
 
 }

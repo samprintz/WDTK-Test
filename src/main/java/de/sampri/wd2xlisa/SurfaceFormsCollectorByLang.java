@@ -39,11 +39,7 @@ public class SurfaceFormsCollectorByLang implements EntityDocumentProcessor {
 		long countLanguages = 0;
 	}
 
-	/**
-	 * Map of all distinct surface forms with the frequency they appear, grouped
-	 * in Maps by language.
-	 */
-	HashMap<String, ConcurrentMap<String, Integer>> allSurfaceForms = new HashMap<String, ConcurrentMap<String, Integer>>();
+	private HashMap<String, ConcurrentMap<String, Integer>> allSurfaceForms = new HashMap<String, ConcurrentMap<String, Integer>>();
 
 	SurfaceFormStatistics stat = new SurfaceFormStatistics();
 
@@ -75,6 +71,7 @@ public class SurfaceFormsCollectorByLang implements EntityDocumentProcessor {
 				} else {
 					DB db = DBMaker.memoryDB().make();
 					langSurfaceForms = db.hashMap("map", Serializer.STRING, Serializer.INTEGER).create();
+					langSurfaceForms.put(label, 1);
 					allSurfaceForms.put(language, langSurfaceForms);
 					stat.countLanguages++;
 					stat.countDistinctLabels++;
@@ -105,6 +102,7 @@ public class SurfaceFormsCollectorByLang implements EntityDocumentProcessor {
 					} else {
 						DB db = DBMaker.memoryDB().make();
 						langSurfaceForms = db.hashMap("map", Serializer.STRING, Serializer.INTEGER).create();
+						langSurfaceForms.put(alias, 1);
 						allSurfaceForms.put(language, langSurfaceForms);
 						stat.countLanguages++;
 						stat.countDistinctAliases++;
@@ -116,7 +114,6 @@ public class SurfaceFormsCollectorByLang implements EntityDocumentProcessor {
 
 		if (stat.countEntities % Helper.LOGGING_DEPTH == 0) {
 			logStatus();
-			// printStatus();
 		}
 	}
 
@@ -148,7 +145,8 @@ public class SurfaceFormsCollectorByLang implements EntityDocumentProcessor {
 
 	/**
 	 * Returns the the map with all distinct surface forms with the frequency
-	 * they appear, grouped by language.
+	 * they appear, grouped by language. The frequency equals the number of
+	 * entities which the surface form can reference.
 	 * 
 	 * @return the the map with all distinct surface forms with the frequency
 	 *         they appear, grouped by language.

@@ -1,7 +1,9 @@
 package de.sampri.wd2xlisa;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.log4j.Logger;
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
@@ -19,6 +21,8 @@ import de.sampri.wd2xlisa.model.SenseBlock;
 public class IndexGeneratorBySense implements EntityDocumentProcessor {
 
 	Logger logger;
+
+	private HashMap<String, ConcurrentMap<String, Integer>> distinctSurfaceFormsByLang;
 
 	/**
 	 * Statistics about the dump.
@@ -38,12 +42,14 @@ public class IndexGeneratorBySense implements EntityDocumentProcessor {
 	/**
 	 * All sense blocks are stored in this index.
 	 */
-	Index<SenseBlock> index = new Index<SenseBlock>();
+	private Index<SenseBlock> index = new Index<SenseBlock>();
 
 	Statistics stat = new Statistics();
 
-	public IndexGeneratorBySense(Logger logger) {
+	public IndexGeneratorBySense(Logger logger,
+			HashMap<String, ConcurrentMap<String, Integer>> distinctSurfaceFormsByLang) {
 		this.logger = logger;
+		this.distinctSurfaceFormsByLang = distinctSurfaceFormsByLang;
 	}
 
 	public void processPropertyDocument(PropertyDocument propertyDocument) {
@@ -55,29 +61,28 @@ public class IndexGeneratorBySense implements EntityDocumentProcessor {
 		stat.countEntities++;
 		stat.countItems++;
 
-		// Get for all available languages
-		Set<String> languages = itemDocument.getLabels().keySet();
-		for (String language : languages) {
-
-			// Label
+		// Label
+		Set<String> labelLanguages = itemDocument.getLabels().keySet();
+		for (String language : labelLanguages) {
 			String label = itemDocument.findLabel(language);
 			if (label != null) {
-				// TODO 0 durch 1/n ersetzen, wobei n der Anzahl an Surface
-				// Forms entspricht, mit denen das Item bezeichnet werden kann
-				SenseBlock block = new SenseBlock(itemDocument.getItemId().getId(), label, language, 0);
+				int n = distinctSurfaceFormsByLang.get(language).get(label);
+				SenseBlock block = new SenseBlock(itemDocument.getItemId().getId(), label, language, 1.0 / n);
 				index.add(block);
 				stat.countSurfaceForms++;
 				stat.countLabels++;
 			}
+		}
 
-			// Aliases
-			// TODO Aliases haben meist deutlich kleineres keySet als Labels,
-			// evtl. wie in SurfaceFormsCollectorByLang anpassen
+		// Aliases
+		Set<String> aliasesLanguages = itemDocument.getAliases().keySet();
+		for (String language : aliasesLanguages) {
 			List<MonolingualTextValue> aliases = itemDocument.getAliases().get(language);
-			if (aliases != null) {
-				for (MonolingualTextValue alias : aliases) {
-					// TODO 0 ersetzen, siehe oben
-					SenseBlock block = new SenseBlock(itemDocument.getItemId().getId(), alias.getText(), language, 0);
+			for (MonolingualTextValue mtv : aliases) {
+				if (mtv != null) {
+					String alias = mtv.getText();
+					int n = distinctSurfaceFormsByLang.get(language).get(alias);
+					SenseBlock block = new SenseBlock(itemDocument.getItemId().getId(), alias, language, 1.0 / n);
 					index.add(block);
 					stat.countSurfaceForms++;
 					stat.countAliases++;
