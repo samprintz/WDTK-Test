@@ -12,6 +12,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class EntityBlock implements Block {
 
 	private String entity;
+	
+	private String label;
 
 	private long sitelinksCount;
 
@@ -28,8 +30,9 @@ public class EntityBlock implements Block {
 	public EntityBlock() {
 	}
 
-	public EntityBlock(String entity, double probability) {
+	public EntityBlock(String entity, String label, double probability) {
 		this.entity = entity;
+		this.label = label;
 		this.probability = probability;
 	}
 
@@ -50,6 +53,25 @@ public class EntityBlock implements Block {
 	 */
 	public void setEntity(String entity) {
 		this.entity = entity;
+	}
+
+	/**
+	 * Returns the label (default surface form) of the entity.
+	 * 
+	 * @return the label (default surface form) of the entity.
+	 */
+	public String getLabel() {
+		return this.label;
+	}
+
+	/**
+	 * Sets the label (default surface form) of the entity.
+	 * 
+	 * @param label
+	 *            the label (default surface form) of the entity.
+	 */
+	public void setLabel(String label) {
+		this.label = label;
 	}
 
 	/**

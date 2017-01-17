@@ -3,6 +3,7 @@ package de.sampri.wd2xlisa;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Scanner;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.log4j.ConsoleAppender;
@@ -28,19 +29,12 @@ public class Main {
 	 */
 	static final Logger logger = Logger.getRootLogger();
 
-	// TODO als Parameter?
 	/**
 	 * The dump which entites should be processed.
 	 */
-	private final static String DUMP_FILE = "src/main/resources/20161031.json.gz";
-	// private final static String DUMP_FILE =
+	private final static String DEFAULT_DUMP_FILE = "src/main/resources/20161031.json.gz";
+	// private final static String DEFAULT_DUMP_FILE =
 	// "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
-
-	/**
-	 * Contains the dump file
-	 */
-	private final static MwLocalDumpFile mwDumpFile = new MwLocalDumpFile(DUMP_FILE, DumpContentType.JSON, "20161031",
-			"wikidatawiki");
 
 	/**
 	 * The results will be saved here.
@@ -72,38 +66,99 @@ public class Main {
 	 */
 	private static final String LOG_FILE = "-log.log";
 
+	/**
+	 * Contains the dump file
+	 */
+	private static MwLocalDumpFile mwDumpFile = null;
+
 	public static void main(String[] args) {
+		String modeInput;
+		Helper.Mode mode = null;
+
+		String dumpFileInput;
+
+		configureLogging();
+
+		if (args.length != 2) {
+			Scanner scanner = new Scanner(System.in);
+
+			System.out.println(
+					"Please input path to dump file, or press Enter for default path (" + DEFAULT_DUMP_FILE + "):");
+			dumpFileInput = scanner.nextLine();
+
+			if (dumpFileInput.length() == 0) {
+				dumpFileInput = DEFAULT_DUMP_FILE;
+			}
+
+			System.out.println("Please select mode (entity, sfform, sense):");
+			modeInput = scanner.nextLine();
+
+			scanner.close();
+		} else {
+			modeInput = args[0];
+			dumpFileInput = args[1];
+		}
+
+		if (modeInput.equalsIgnoreCase("entity")) {
+			mode = Helper.Mode.ENTITY_INDEX;
+		} else if (modeInput.equalsIgnoreCase("sfform")) {
+			mode = Helper.Mode.SFFORM_INDEX;
+		} else if (modeInput.equalsIgnoreCase("sense")) {
+			mode = Helper.Mode.SENSE_INDEX;
+		} else {
+			System.out.println("Invalid mode: " + modeInput + ". Must be entity, sfform or sense.");
+			System.exit(0);
+		}
+
+		// Dump file
+		mwDumpFile = new MwLocalDumpFile(dumpFileInput, DumpContentType.JSON, "20161031", "wikidatawiki");
+
+		if (mwDumpFile == null || mwDumpFile.isAvailable() == false) {
+			System.out.println("Dump file (" + dumpFileInput + ") not found.");
+			System.exit(0);
+		}
+
+		logger.info("Create " + modeInput + " index from dump file " + dumpFileInput + ".");
+
 		// Create directories
 		File dir = new File(OUTPUT_PATH);
 		dir.mkdirs();
 		dir = new File(LOG_PATH);
 		dir.mkdirs();
 
-		configureLogging();
-
 		logger.info("=== Preprocessing ===");
 
-		// Count Sitelinks
-		// int distinctSitelinks = getDistinctSitelinks();
+		switch (mode) {
+		case ENTITY_INDEX:
+			// Count Sitelinks
+			int distinctSitelinks = getDistinctSitelinks();
+			logger.info("");
+			logger.info("=== Processing ===");
 
-		// Get all distinct Surface Forms
-		ConcurrentMap<String, Integer> distinctSurfaceForms = getDistinctSurfaceForms();
+			// Create Entity Index
+			runEntityIndexGenerator(distinctSitelinks);
+			break;
 
-		// Get for each language all distinct Surface Forms
-		// HashMap<String, ConcurrentMap<String, Integer>>
-		// distinctSurfaceFormsByLang = getDistinctSurfaceFormsByLang();
+		case SFFORM_INDEX:
+			// Get all distinct Surface Forms
+			ConcurrentMap<String, Integer> distinctSurfaceForms = getDistinctSurfaceForms();
+			logger.info("");
+			logger.info("=== Processing ===");
+			// Create Surface Form Index
+			runSurfaceFormIndexGenerator(distinctSurfaceForms);
+			break;
 
-		logger.info("");
-		logger.info("=== Processing ===");
-
-		// Create Entity Index
-		// runEntityIndexGenerator(distinctSitelinks);
-
-		// Create Surface Form Index
-		runSurfaceFormIndexGenerator(distinctSurfaceForms);
-
-		// Create Sense Index
-		// runSenseIndexGenerator(distinctSurfaceFormsByLang);
+		case SENSE_INDEX:
+			// Get for each language all distinct Surface Forms
+			HashMap<String, ConcurrentMap<String, Integer>> distinctSurfaceFormsByLang = getDistinctSurfaceFormsByLang();
+			logger.info("");
+			logger.info("=== Processing ===");
+			// Create Sense Index
+			runSenseIndexGenerator(distinctSurfaceFormsByLang);
+			break;
+		default:
+			break;
+		}
 
 		logger.info("");
 		logger.info("Done.");

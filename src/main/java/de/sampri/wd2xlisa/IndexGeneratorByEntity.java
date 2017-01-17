@@ -6,13 +6,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.wikidata.wdtk.datamodel.interfaces.EntityDocument;
 import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
-import org.wikidata.wdtk.wikibaseapi.WikibaseDataFetcher;
-import org.wikidata.wdtk.wikibaseapi.apierrors.MediaWikiApiErrorException;
 
 import de.sampri.wd2xlisa.model.EntityBlock;
 import de.sampri.wd2xlisa.model.Index;
@@ -31,6 +28,11 @@ public class IndexGeneratorByEntity
 	 * entities after the dump was processed.
 	 */
 	int itemCount = 0;
+
+	/**
+	 * Incremented with each processed entity, that was added to the index.
+	 */
+	int itemIndexedCount = 0;
 
 	/**
 	 * Filled by the {@link SitelinksCounter} with Number of distinct site links
@@ -52,9 +54,24 @@ public class IndexGeneratorByEntity
 	}
 
 	public void processItemDocument(ItemDocument itemDocument) {
-		EntityBlock entity = retrieveResult(itemDocument);
-		index.add(entity);
-		// writeToIndex(entityBlock);
+		String label = itemDocument.findLabel("en");
+
+		if (label != null) {
+			EntityBlock entity = new EntityBlock();
+			entity.setEntity(itemDocument.getItemId().getId());
+			entity.setLabel(label);
+
+			// Surface forms
+			// TODO Werden hier erstmal nicht mehr gebraucht
+			// indexEntity.surfaceForms = retrieveSurfaceForms(itemDocument);
+
+			// Statistics
+			int sitelinksCount = itemDocument.getSiteLinks().size();
+			entity.setSitelinksCount(sitelinksCount);
+			entity.setProbability((double) sitelinksCount / distinctSitelinks);
+
+			index.add(entity);
+		}
 
 		this.itemCount++;
 		if (this.itemCount % Helper.LOGGING_DEPTH == 0) {
@@ -62,40 +79,8 @@ public class IndexGeneratorByEntity
 		}
 	}
 
-	public void processItemDocumentById(String itemId) {
-		WikibaseDataFetcher wbdf = WikibaseDataFetcher.getWikidataDataFetcher();
-		try {
-			EntityDocument entityDocument = wbdf.getEntityDocument(itemId);
-			if (entityDocument instanceof ItemDocument) {
-				EntityBlock entity = retrieveResult((ItemDocument) entityDocument);
-				index.add(entity);
-				// writeToIndex(entityBlock);
-			}
-		} catch (MediaWikiApiErrorException e) {
-			e.printStackTrace();
-		}
-	}
-
 	public void logStatus() {
-		logger.info("Processed " + itemCount + " entities.");
-	}
-
-	public EntityBlock retrieveResult(ItemDocument itemDocument) {
-		EntityBlock entity = new EntityBlock();
-
-		// ID
-		entity.setEntity(itemDocument.getItemId().getId());
-
-		// Surface forms
-		// TODO Werden hier erstmal nicht mehr gebraucht
-		// indexEntity.surfaceForms = retrieveSurfaceForms(itemDocument);
-
-		// Statistics
-		int sitelinksCount = itemDocument.getSiteLinks().size();
-		entity.setSitelinksCount(sitelinksCount);
-		entity.setProbability((double) sitelinksCount / distinctSitelinks);
-
-		return entity;
+		logger.info("Processed " + itemCount + " entities, added " + itemIndexedCount + " to index.");
 	}
 
 	/**

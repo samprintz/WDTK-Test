@@ -34,6 +34,13 @@ public class Helper {
 	}
 
 	/**
+	 * Types of indizes, that can be created.
+	 */
+	public enum Mode {
+		ENTITY_INDEX, SFFORM_INDEX, SENSE_INDEX,
+	}
+
+	/**
 	 * Returns JSON generator for writing index results to file.
 	 * 
 	 * @param filepath
