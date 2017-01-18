@@ -71,6 +71,7 @@ public class IndexGeneratorByEntity
 			entity.setProbability((double) sitelinksCount / distinctSitelinks);
 
 			index.add(entity);
+			this.itemIndexedCount++;
 		}
 
 		this.itemCount++;

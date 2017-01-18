@@ -37,7 +37,7 @@ public class Helper {
 	 * Types of indizes, that can be created.
 	 */
 	public enum Mode {
-		ENTITY_INDEX, SFFORM_INDEX, SENSE_INDEX,
+		ENTITY_INDEX, SFFORM_INDEX, SENSE_INDEX, LONGEST_SFFORM
 	}
 
 	/**

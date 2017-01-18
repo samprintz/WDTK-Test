@@ -90,7 +90,7 @@ public class Main {
 				dumpFileInput = DEFAULT_DUMP_FILE;
 			}
 
-			System.out.println("Please select mode (entity, sfform, sense):");
+			System.out.println("Please select mode (entity, sfform, sense, longest_sfform):");
 			modeInput = scanner.nextLine();
 
 			scanner.close();
@@ -105,6 +105,8 @@ public class Main {
 			mode = Helper.Mode.SFFORM_INDEX;
 		} else if (modeInput.equalsIgnoreCase("sense")) {
 			mode = Helper.Mode.SENSE_INDEX;
+		} else if (modeInput.equalsIgnoreCase("longest_sfform")) {
+			mode = Helper.Mode.LONGEST_SFFORM;
 		} else {
 			System.out.println("Invalid mode: " + modeInput + ". Must be entity, sfform or sense.");
 			System.exit(0);
@@ -126,20 +128,19 @@ public class Main {
 		dir = new File(LOG_PATH);
 		dir.mkdirs();
 
-		logger.info("=== Preprocessing ===");
-
 		switch (mode) {
 		case ENTITY_INDEX:
+			logger.info("=== Preprocessing ===");
 			// Count Sitelinks
 			int distinctSitelinks = getDistinctSitelinks();
 			logger.info("");
 			logger.info("=== Processing ===");
-
 			// Create Entity Index
 			runEntityIndexGenerator(distinctSitelinks);
 			break;
 
 		case SFFORM_INDEX:
+			logger.info("=== Preprocessing ===");
 			// Get all distinct Surface Forms
 			ConcurrentMap<String, Integer> distinctSurfaceForms = getDistinctSurfaceForms();
 			logger.info("");
@@ -149,12 +150,19 @@ public class Main {
 			break;
 
 		case SENSE_INDEX:
+			logger.info("=== Preprocessing ===");
 			// Get for each language all distinct Surface Forms
 			HashMap<String, ConcurrentMap<String, Integer>> distinctSurfaceFormsByLang = getDistinctSurfaceFormsByLang();
 			logger.info("");
 			logger.info("=== Processing ===");
 			// Create Sense Index
 			runSenseIndexGenerator(distinctSurfaceFormsByLang);
+			break;
+
+		case LONGEST_SFFORM:
+			logger.info("=== Processing ===");
+			// Find the surface form containing most words
+			runLongestSfformFinder();
 			break;
 		default:
 			break;
@@ -181,6 +189,32 @@ public class Main {
 			System.out.println("File logger could not be initialized: " + e);
 			e.printStackTrace();
 		}
+	}
+
+	private static void runLongestSfformFinder() {
+		logger.info("> Start finding of the surface form contain most words...");
+		long startTime = System.nanoTime();
+
+		// Instantiate Dump Processor Controller for Sitelinks Counter
+		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
+		dumpProcessingController.setOfflineMode(true);
+
+		// Instantiate Sitelinks Counter
+		LongSfformFinder longSfformFinder = new LongSfformFinder();
+		dumpProcessingController.registerEntityDocumentProcessor(longSfformFinder, null, true);
+		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
+		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
+
+		dumpProcessingController.processDump(mwDumpFile);
+
+		entityTimerProcessor.close();
+
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime) / 1000000;
+		logger.info("Finished finding of the surface form contain most words (" + duration + " ms).");
+
+		longSfformFinder.printStatistics();
+		logger.info(longSfformFinder.getResult());
 	}
 
 	private static int getDistinctSitelinks() {
