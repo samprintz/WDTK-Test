@@ -17,6 +17,7 @@ import org.wikidata.wdtk.dumpfiles.EntityTimerProcessor;
 import org.wikidata.wdtk.dumpfiles.MwLocalDumpFile;
 
 import de.sampri.wd2xlisa.model.EntityBlock;
+import de.sampri.wd2xlisa.model.EntityDbpediaMapping;
 import de.sampri.wd2xlisa.model.Index;
 import de.sampri.wd2xlisa.model.SenseBlock;
 import de.sampri.wd2xlisa.model.SurfaceFormBlock;
@@ -34,7 +35,7 @@ public class Main {
 	 */
 	private final static String DEFAULT_DUMP_FILE = "src/main/resources/20161031.json.gz";
 	// private final static String DEFAULT_DUMP_FILE =
-	// "B:/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
+	// "B:/dumps/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
 
 	/**
 	 * The results will be saved here.
@@ -55,6 +56,12 @@ public class Main {
 	 * Postfix of the JSON file for of the sense index.
 	 */
 	private static final String SENSE_INDEX_FILE = "-sense-index.json";
+
+	/**
+	 * Postfix of the JSON file for of the Mappings between Wikidata entities
+	 * and their corresponding DBpedia URL.
+	 */
+	private static final String ENTITY_DBPEDIA_MAPPING_FILE = "-entity-dbpedia-mapping.json";
 
 	/**
 	 * The logs will be saved here.
@@ -90,7 +97,7 @@ public class Main {
 				dumpFileInput = DEFAULT_DUMP_FILE;
 			}
 
-			System.out.println("Please select mode (entity, sfform, sense, longest_sfform):");
+			System.out.println("Please select mode (entity, sfform, sense, dbpedia, longest_sfform):");
 			modeInput = scanner.nextLine();
 
 			scanner.close();
@@ -107,8 +114,11 @@ public class Main {
 			mode = Helper.Mode.SENSE_INDEX;
 		} else if (modeInput.equalsIgnoreCase("longest_sfform")) {
 			mode = Helper.Mode.LONGEST_SFFORM;
+		} else if (modeInput.equalsIgnoreCase("dbpedia")) {
+			mode = Helper.Mode.DBPEDIA_MAPPING;
 		} else {
-			System.out.println("Invalid mode: " + modeInput + ". Must be entity, sfform or sense.");
+			System.out.println(
+					"Invalid mode: " + modeInput + ". Must be entity, sfform, sense, dbpedia or longest_sfform.");
 			System.exit(0);
 		}
 
@@ -163,6 +173,12 @@ public class Main {
 			logger.info("=== Processing ===");
 			// Find the surface form containing most words
 			runLongestSfformFinder();
+			break;
+
+		case DBPEDIA_MAPPING:
+			logger.info("=== Processing ===");
+			// Create DBpedia Mapping
+			runDbpediaMappingGenerator();
 			break;
 		default:
 			break;
@@ -296,6 +312,36 @@ public class Main {
 		logger.info("Finished collecting of distinct surface forms for each language (" + duration + " ms).");
 
 		return surfaceFormsCollectorByLang.getResult();
+	}
+
+	private static void runDbpediaMappingGenerator() {
+		logger.info("> Start creation of DBpedia mappings...");
+		long startTime = System.nanoTime();
+
+		// Instantiate Dump Processor Controller for Sitelinks Counter
+		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
+		dumpProcessingController.setOfflineMode(true);
+
+		// Instantiate Sitelinks Counter
+		DbpediaMappingsGenerator dbpediaMappingsGenerator = new DbpediaMappingsGenerator(logger);
+		dumpProcessingController.registerEntityDocumentProcessor(dbpediaMappingsGenerator, null, true);
+		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
+		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
+
+		dumpProcessingController.processDump(mwDumpFile);
+
+		entityTimerProcessor.close();
+
+		Index<EntityDbpediaMapping> index = dbpediaMappingsGenerator.getIndex();
+		dbpediaMappingsGenerator.printStatistics();
+
+		// writeToFile
+		String filepath = OUTPUT_PATH + Helper.getTimeStamp() + ENTITY_DBPEDIA_MAPPING_FILE;
+		index.writeToFile(filepath, logger);
+
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime) / 1000000;
+		logger.info("Finished creation of DBpedia mappings (" + duration + " ms). File at " + filepath);
 	}
 
 	private static void runEntityIndexGenerator(int distinctSitelinks) {
