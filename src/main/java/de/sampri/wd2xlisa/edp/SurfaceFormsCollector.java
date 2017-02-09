@@ -1,4 +1,4 @@
-package de.sampri.wd2xlisa;
+package de.sampri.wd2xlisa.edp;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,10 +17,12 @@ import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 
+import de.sampri.wd2xlisa.Helper;
+
 /**
  * Class for retrieving all distinct surface forms in a Wikidata dump.
  */
-public class SurfaceFormsCounter implements EntityDocumentProcessor {
+public class SurfaceFormsCollector implements EntityDocumentProcessor {
 
 	Logger logger;
 
@@ -49,7 +51,7 @@ public class SurfaceFormsCounter implements EntityDocumentProcessor {
 
 	SurfaceFormStatistics stat = new SurfaceFormStatistics();
 
-	public SurfaceFormsCounter(Logger logger) {
+	public SurfaceFormsCollector(Logger logger) {
 		this.logger = logger;
 	}
 

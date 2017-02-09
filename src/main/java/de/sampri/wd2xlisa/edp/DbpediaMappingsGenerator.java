@@ -1,4 +1,4 @@
-package de.sampri.wd2xlisa;
+package de.sampri.wd2xlisa.edp;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -9,6 +9,7 @@ import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 import org.wikidata.wdtk.datamodel.interfaces.SiteLink;
 
+import de.sampri.wd2xlisa.Helper;
 import de.sampri.wd2xlisa.model.EntityDbpediaMapping;
 import de.sampri.wd2xlisa.model.Index;
 

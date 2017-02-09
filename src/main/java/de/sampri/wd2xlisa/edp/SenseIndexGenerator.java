@@ -1,4 +1,4 @@
-package de.sampri.wd2xlisa;
+package de.sampri.wd2xlisa.edp;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,6 +11,7 @@ import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 
+import de.sampri.wd2xlisa.Helper;
 import de.sampri.wd2xlisa.model.Index;
 import de.sampri.wd2xlisa.model.SenseBlock;
 
@@ -18,7 +19,7 @@ import de.sampri.wd2xlisa.model.SenseBlock;
  * Class for creating an {@link Index} of {@link SenseBlock}s, containing blocks
  * for all senses of surface forms appearing in a Wikidata dump.
  */
-public class IndexGeneratorBySense implements EntityDocumentProcessor {
+public class SenseIndexGenerator implements EntityDocumentProcessor {
 
 	Logger logger;
 
@@ -46,7 +47,7 @@ public class IndexGeneratorBySense implements EntityDocumentProcessor {
 
 	Statistics stat = new Statistics();
 
-	public IndexGeneratorBySense(Logger logger,
+	public SenseIndexGenerator(Logger logger,
 			HashMap<String, ConcurrentMap<String, Integer>> distinctSurfaceFormsByLang) {
 		this.logger = logger;
 		this.distinctSurfaceFormsByLang = distinctSurfaceFormsByLang;

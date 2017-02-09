@@ -16,6 +16,14 @@ import org.wikidata.wdtk.dumpfiles.DumpProcessingController;
 import org.wikidata.wdtk.dumpfiles.EntityTimerProcessor;
 import org.wikidata.wdtk.dumpfiles.MwLocalDumpFile;
 
+import de.sampri.wd2xlisa.edp.DbpediaMappingsGenerator;
+import de.sampri.wd2xlisa.edp.EntityIndexGenerator;
+import de.sampri.wd2xlisa.edp.SenseIndexGenerator;
+import de.sampri.wd2xlisa.edp.SurfaceFormIndexGenerator;
+import de.sampri.wd2xlisa.edp.LongestSurfaceFormFinder;
+import de.sampri.wd2xlisa.edp.SitelinksCounter;
+import de.sampri.wd2xlisa.edp.SurfaceFormsCollectorByLang;
+import de.sampri.wd2xlisa.edp.SurfaceFormsCollector;
 import de.sampri.wd2xlisa.model.EntityBlock;
 import de.sampri.wd2xlisa.model.EntityDbpediaMapping;
 import de.sampri.wd2xlisa.model.Index;
@@ -33,9 +41,9 @@ public class Main {
 	/**
 	 * The dump which entites should be processed.
 	 */
-	private final static String DEFAULT_DUMP_FILE = "src/main/resources/20161031.json.gz";
-	// private final static String DEFAULT_DUMP_FILE =
-	// "B:/dumps/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
+//	private final static String DEFAULT_DUMP_FILE = "src/main/resources/20161031.json.gz";
+	 private final static String DEFAULT_DUMP_FILE =
+	 "B:/dumps/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
 
 	/**
 	 * The results will be saved here.
@@ -216,7 +224,7 @@ public class Main {
 		dumpProcessingController.setOfflineMode(true);
 
 		// Instantiate Sitelinks Counter
-		LongSfformFinder longSfformFinder = new LongSfformFinder();
+		LongestSurfaceFormFinder longSfformFinder = new LongestSurfaceFormFinder();
 		dumpProcessingController.registerEntityDocumentProcessor(longSfformFinder, null, true);
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
@@ -267,7 +275,7 @@ public class Main {
 		dumpProcessingController.setOfflineMode(true);
 
 		// Instantiate SurfaceForms Counter
-		SurfaceFormsCounter surfaceFormsCounter = new SurfaceFormsCounter(logger);
+		SurfaceFormsCollector surfaceFormsCounter = new SurfaceFormsCollector(logger);
 		dumpProcessingController.registerEntityDocumentProcessor(surfaceFormsCounter, null, true);
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
@@ -353,7 +361,7 @@ public class Main {
 		dumpProcessingController.setOfflineMode(true);
 
 		// Instantiale Index Generator and Timer Processor
-		IndexGeneratorByEntity indexGenerator = new IndexGeneratorByEntity(logger, distinctSitelinks);
+		EntityIndexGenerator indexGenerator = new EntityIndexGenerator(logger, distinctSitelinks);
 		dumpProcessingController.registerEntityDocumentProcessor(indexGenerator, null, true);
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
@@ -381,7 +389,7 @@ public class Main {
 		logger.info("> Start creation of surface form index...");
 		long startTime = System.nanoTime();
 
-		IndexGeneratorBySurfaceForm indexGenerator = new IndexGeneratorBySurfaceForm();
+		SurfaceFormIndexGenerator indexGenerator = new SurfaceFormIndexGenerator();
 		indexGenerator.generateIndex(distinctSurfaceForms);
 		Index<SurfaceFormBlock> index = indexGenerator.getIndex();
 
@@ -404,7 +412,7 @@ public class Main {
 		dumpProcessingController.setOfflineMode(true);
 
 		// Instantiale Index Generator and Timer Processor
-		IndexGeneratorBySense indexGenerator = new IndexGeneratorBySense(logger, distinctSurfaceFormsByLang);
+		SenseIndexGenerator indexGenerator = new SenseIndexGenerator(logger, distinctSurfaceFormsByLang);
 		dumpProcessingController.registerEntityDocumentProcessor(indexGenerator, null, true);
 		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
 		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);

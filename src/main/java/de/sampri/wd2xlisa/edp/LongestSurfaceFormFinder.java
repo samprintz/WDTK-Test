@@ -1,4 +1,4 @@
-package de.sampri.wd2xlisa;
+package de.sampri.wd2xlisa.edp;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,11 +10,13 @@ import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 
+import de.sampri.wd2xlisa.Main;
+
 /**
  * Class for finding the surface form containing the most words in the Wikidata
  * dump and getting some statistics about the lengths of all surface forms.
  */
-public class LongSfformFinder implements EntityDocumentProcessor {
+public class LongestSurfaceFormFinder implements EntityDocumentProcessor {
 
 	private static Logger logger = Logger.getLogger(Main.class);
 

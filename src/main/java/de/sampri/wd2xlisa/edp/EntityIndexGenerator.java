@@ -1,4 +1,4 @@
-package de.sampri.wd2xlisa;
+package de.sampri.wd2xlisa.edp;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +11,7 @@ import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
 
+import de.sampri.wd2xlisa.Helper;
 import de.sampri.wd2xlisa.model.EntityBlock;
 import de.sampri.wd2xlisa.model.Index;
 
@@ -18,7 +19,7 @@ import de.sampri.wd2xlisa.model.Index;
  * Class for creating an {@link Index} of {@link EntityBlock}s, containing
  * blocks for all entities of a Wikidata dump.
  */
-public class IndexGeneratorByEntity
+public class EntityIndexGenerator
 		implements EntityDocumentProcessor /* implements IndexGenerator */ {
 
 	Logger logger;
@@ -45,7 +46,7 @@ public class IndexGeneratorByEntity
 	 */
 	Index<EntityBlock> index = new Index<EntityBlock>();
 
-	public IndexGeneratorByEntity(Logger logger, int distinctSitelinks) {
+	public EntityIndexGenerator(Logger logger, int distinctSitelinks) {
 		this.logger = logger;
 		this.distinctSitelinks = distinctSitelinks;
 	}

@@ -1,4 +1,4 @@
-package de.sampri.wd2xlisa;
+package de.sampri.wd2xlisa.edp;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,6 +14,8 @@ import org.wikidata.wdtk.datamodel.interfaces.EntityDocumentProcessor;
 import org.wikidata.wdtk.datamodel.interfaces.ItemDocument;
 import org.wikidata.wdtk.datamodel.interfaces.MonolingualTextValue;
 import org.wikidata.wdtk.datamodel.interfaces.PropertyDocument;
+
+import de.sampri.wd2xlisa.Helper;
 
 /**
  * Class for retrieving all distinct surface forms in a Wikidata dump, grouped

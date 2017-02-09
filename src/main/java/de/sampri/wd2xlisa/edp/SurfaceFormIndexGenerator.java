@@ -1,4 +1,4 @@
-package de.sampri.wd2xlisa;
+package de.sampri.wd2xlisa.edp;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
@@ -10,7 +10,7 @@ import de.sampri.wd2xlisa.model.SurfaceFormBlock;
  * Class for creating an {@link Index} of {@link SurfaceFormBlock}s, containing
  * blocks for all surface forms appearing in a Wikidata dump.
  */
-public class IndexGeneratorBySurfaceForm {
+public class SurfaceFormIndexGenerator {
 
 	/**
 	 * All surface form blocks are stored in this index.
