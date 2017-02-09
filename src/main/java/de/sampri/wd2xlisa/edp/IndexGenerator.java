@@ -12,7 +12,5 @@ import de.sampri.wd2xlisa.model.Index;
 public interface IndexGenerator extends EntityDocumentProcessor {
 
 	Index<Block> getIndex(ItemDocument itemDocument);
-	
-	void logStatus();
 
 }

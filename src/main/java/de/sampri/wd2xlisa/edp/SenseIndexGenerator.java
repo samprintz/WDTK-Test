@@ -108,10 +108,6 @@ public class SenseIndexGenerator implements EntityDocumentProcessor {
 				+ stat.countAliases + " aliases (" + stat.countDistinctAliases + " distinct).");
 	}
 
-	public void generateIndex() {
-		// already done during processing the dump
-	}
-
 	public Index<SenseBlock> getIndex() {
 		return index;
 	}

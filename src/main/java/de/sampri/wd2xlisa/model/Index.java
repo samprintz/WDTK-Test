@@ -18,15 +18,16 @@ import de.sampri.wd2xlisa.Helper;
  *            Class of the blocks that are collected, {@link SurfaceFormBlock},
  *            {@link EntityBlock} or , {@link SenseBlock}.
  */
+// TODO Remove type
 public class Index<T> {
 
 	/**
 	 * List for collecting the surface form, entity or sense blocks while
 	 * processing the dump.
 	 */
-	List<T> blocks = new ArrayList<T>();
+	List<Block> blocks = new ArrayList<Block>();
 
-	public void add(T block) {
+	public void add(Block block) {
 		blocks.add(block);
 	}
 
@@ -45,8 +46,8 @@ public class Index<T> {
 		int count = 0;
 
 		try {
-			for (T entity : blocks) {
-				jsonGenerator.writeObject(entity);
+			for (Block block : blocks) {
+				jsonGenerator.writeObject(block);
 				jsonGenerator.writeRaw("\n");
 
 				count++;

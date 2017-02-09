@@ -125,10 +125,6 @@ public class EntityIndexGenerator
 		return surfaceForms;
 	}
 
-	public void generateIndex() {
-		// already done during processing the dump
-	}
-
 	public Index<EntityBlock> getIndex() {
 		return index;
 	}

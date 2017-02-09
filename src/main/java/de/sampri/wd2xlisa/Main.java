@@ -41,9 +41,9 @@ public class Main {
 	/**
 	 * The dump which entites should be processed.
 	 */
-//	private final static String DEFAULT_DUMP_FILE = "src/main/resources/20161031.json.gz";
-	 private final static String DEFAULT_DUMP_FILE =
-	 "B:/dumps/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
+	// private final static String DEFAULT_DUMP_FILE =
+	// "src/main/resources/20161031.json.gz";
+	private final static String DEFAULT_DUMP_FILE = "B:/dumps/20161107-wikidata_dump/dumpfiles/wikidatawiki/json-20161031/20161031-head-10000.json.gz";
 
 	/**
 	 * The results will be saved here.
@@ -69,7 +69,7 @@ public class Main {
 	 * Postfix of the JSON file for of the Mappings between Wikidata entities
 	 * and their corresponding DBpedia URL.
 	 */
-	private static final String ENTITY_DBPEDIA_MAPPING_FILE = "-entity-dbpedia-mapping.json";
+	private static final String DBPEDIA_MAPPING_FILE = "-entity-dbpedia-mapping.json";
 
 	/**
 	 * The logs will be saved here.
@@ -180,7 +180,7 @@ public class Main {
 		case LONGEST_SFFORM:
 			logger.info("=== Processing ===");
 			// Find the surface form containing most words
-			runLongestSfformFinder();
+			runLongestSurfaceFormFinder();
 			break;
 
 		case DBPEDIA_MAPPING:
@@ -197,7 +197,7 @@ public class Main {
 
 	}
 
-	private static void configureLogging() {
+	public static void configureLogging() {
 		PatternLayout layout = new PatternLayout("%d{yyyy-MM-dd HH:mm:ss} %-5p - %m%n"); // %c{1}:%L
 
 		ConsoleAppender consoleAppender = new ConsoleAppender(layout);
@@ -215,33 +215,12 @@ public class Main {
 		}
 	}
 
-	private static void runLongestSfformFinder() {
-		logger.info("> Start finding of the surface form contain most words...");
-		long startTime = System.nanoTime();
-
-		// Instantiate Dump Processor Controller for Sitelinks Counter
-		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
-		dumpProcessingController.setOfflineMode(true);
-
-		// Instantiate Sitelinks Counter
-		LongestSurfaceFormFinder longSfformFinder = new LongestSurfaceFormFinder();
-		dumpProcessingController.registerEntityDocumentProcessor(longSfformFinder, null, true);
-		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
-		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
-
-		dumpProcessingController.processDump(mwDumpFile);
-
-		entityTimerProcessor.close();
-
-		long endTime = System.nanoTime();
-		long duration = (endTime - startTime) / 1000000;
-		logger.info("Finished finding of the surface form contain most words (" + duration + " ms).");
-
-		longSfformFinder.printStatistics();
-		logger.info(longSfformFinder.getResult());
-	}
-
-	private static int getDistinctSitelinks() {
+	/**
+	 * Runs the {@link SitelinksCounter}.
+	 * 
+	 * @return list of all distinct sitelinks in the dump.
+	 */
+	public static int getDistinctSitelinks() {
 		logger.info("> Start counting of distinct sitelinks...");
 		long startTime = System.nanoTime();
 
@@ -266,7 +245,13 @@ public class Main {
 		return sitelinksCounter.getResult();
 	}
 
-	private static ConcurrentMap<String, Integer> getDistinctSurfaceForms() {
+	/**
+	 * Runs the {@link SurfaceFormsCollector}.
+	 * 
+	 * @return the the list of all distinct surface forms with the frequency
+	 *         they appear.
+	 */
+	public static ConcurrentMap<String, Integer> getDistinctSurfaceForms() {
 		logger.info("> Start collecting distinct surface forms...");
 		long startTime = System.nanoTime();
 
@@ -293,7 +278,13 @@ public class Main {
 		return surfaceFormsCounter.getResult();
 	}
 
-	private static HashMap<String, ConcurrentMap<String, Integer>> getDistinctSurfaceFormsByLang() {
+	/**
+	 * Runs the {@link SurfaceFormsCollectorByLang}.
+	 * 
+	 * @return the the map with all distinct surface forms with the frequency
+	 *         they appear, grouped by language.
+	 */
+	public static HashMap<String, ConcurrentMap<String, Integer>> getDistinctSurfaceFormsByLang() {
 		logger.info("> Start collecting distinct surface forms for each language...");
 		long startTime = System.nanoTime();
 
@@ -322,37 +313,14 @@ public class Main {
 		return surfaceFormsCollectorByLang.getResult();
 	}
 
-	private static void runDbpediaMappingGenerator() {
-		logger.info("> Start creation of DBpedia mappings...");
-		long startTime = System.nanoTime();
-
-		// Instantiate Dump Processor Controller for Sitelinks Counter
-		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
-		dumpProcessingController.setOfflineMode(true);
-
-		// Instantiate Sitelinks Counter
-		DbpediaMappingsGenerator dbpediaMappingsGenerator = new DbpediaMappingsGenerator(logger);
-		dumpProcessingController.registerEntityDocumentProcessor(dbpediaMappingsGenerator, null, true);
-		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
-		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
-
-		dumpProcessingController.processDump(mwDumpFile);
-
-		entityTimerProcessor.close();
-
-		Index<EntityDbpediaMapping> index = dbpediaMappingsGenerator.getIndex();
-		dbpediaMappingsGenerator.printStatistics();
-
-		// writeToFile
-		String filepath = OUTPUT_PATH + Helper.getTimeStamp() + ENTITY_DBPEDIA_MAPPING_FILE;
-		index.writeToFile(filepath, logger);
-
-		long endTime = System.nanoTime();
-		long duration = (endTime - startTime) / 1000000;
-		logger.info("Finished creation of DBpedia mappings (" + duration + " ms). File at " + filepath);
-	}
-
-	private static void runEntityIndexGenerator(int distinctSitelinks) {
+	/**
+	 * Runs the {@link EntityIndexGenerator} and writes the result to
+	 * {@link #ENTITY_INDEX_FILE}.
+	 * 
+	 * @param distinctSitelinks
+	 *            Number of distinct sitelinks.
+	 */
+	public static void runEntityIndexGenerator(int distinctSitelinks) {
 		logger.info("> Start creation of entity index...");
 		long startTime = System.nanoTime();
 
@@ -370,22 +338,26 @@ public class Main {
 
 		entityTimerProcessor.close();
 
-		// indexGenerator.generateIndex();
 		Index<EntityBlock> index = indexGenerator.getIndex();
 
 		// writeToFile
 		String filepath = OUTPUT_PATH + Helper.getTimeStamp() + ENTITY_INDEX_FILE;
 		index.writeToFile(filepath, logger);
-		// indexGeneratorByEntity.writeToFile(filepath);
 
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime) / 1000000;
 		logger.info("Finished creation of entity index (" + duration + " ms). File at " + filepath);
-
-		// indexGeneratorByEntity.processItemDocumentById("Q1726");
 	}
 
-	private static void runSurfaceFormIndexGenerator(ConcurrentMap<String, Integer> distinctSurfaceForms) {
+	/**
+	 * Runs the {@link SurfaceFormIndexGenerator} and writes the result to
+	 * {@link #SFFORM_INDEX_FILE}.
+	 * 
+	 * @param distinctSurfaceForms
+	 *            Map of distinct surface forms with their frequency in the
+	 *            dump.
+	 */
+	public static void runSurfaceFormIndexGenerator(ConcurrentMap<String, Integer> distinctSurfaceForms) {
 		logger.info("> Start creation of surface form index...");
 		long startTime = System.nanoTime();
 
@@ -401,7 +373,15 @@ public class Main {
 		logger.info("Finished creation of surface form index (" + duration + " ms). File at " + filepath);
 	}
 
-	private static void runSenseIndexGenerator(
+	/**
+	 * Runs the {@link SenseIndexGenerator} and writes the result to
+	 * {@link #SENSE_INDEX_FILE}.
+	 * 
+	 * @param distinctSurfaceFormsByLang
+	 *            Map of distinct surface forms with their frequency in the
+	 *            dump, grouped by language.
+	 */
+	public static void runSenseIndexGenerator(
 			HashMap<String, ConcurrentMap<String, Integer>> distinctSurfaceFormsByLang) {
 
 		logger.info("> Start creation of sense index...");
@@ -432,6 +412,70 @@ public class Main {
 		long endTime = System.nanoTime();
 		long duration = (endTime - startTime) / 1000000;
 		logger.info("Finished creation of sense index (" + duration + " ms). File at " + filepath);
+	}
+
+	/**
+	 * Runs the {@link LongestSurfaceFormFinder} and prints the result to the
+	 * logs.
+	 */
+	public static void runLongestSurfaceFormFinder() {
+		logger.info("> Start finding of the surface form contain most words...");
+		long startTime = System.nanoTime();
+
+		// Instantiate Dump Processor Controller for Sitelinks Counter
+		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
+		dumpProcessingController.setOfflineMode(true);
+
+		// Instantiate Sitelinks Counter
+		LongestSurfaceFormFinder longSfformFinder = new LongestSurfaceFormFinder();
+		dumpProcessingController.registerEntityDocumentProcessor(longSfformFinder, null, true);
+		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
+		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
+
+		dumpProcessingController.processDump(mwDumpFile);
+
+		entityTimerProcessor.close();
+
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime) / 1000000;
+		logger.info("Finished finding of the surface form contain most words (" + duration + " ms).");
+
+		longSfformFinder.printStatistics();
+		logger.info(longSfformFinder.getResult());
+	}
+
+	/**
+	 * Runs the {@link DbpediaMappingGenerator} and writes the result to
+	 * {@link #DBPEDIA_MAPPING_FILE}.
+	 */
+	public static void runDbpediaMappingGenerator() {
+		logger.info("> Start creation of DBpedia mappings...");
+		long startTime = System.nanoTime();
+
+		// Instantiate Dump Processor Controller for Sitelinks Counter
+		DumpProcessingController dumpProcessingController = new DumpProcessingController("wikidatawiki");
+		dumpProcessingController.setOfflineMode(true);
+
+		// Instantiate Sitelinks Counter
+		DbpediaMappingsGenerator dbpediaMappingsGenerator = new DbpediaMappingsGenerator(logger);
+		dumpProcessingController.registerEntityDocumentProcessor(dbpediaMappingsGenerator, null, true);
+		EntityTimerProcessor entityTimerProcessor = new EntityTimerProcessor(0);
+		dumpProcessingController.registerEntityDocumentProcessor(entityTimerProcessor, null, true);
+
+		dumpProcessingController.processDump(mwDumpFile);
+
+		entityTimerProcessor.close();
+
+		Index<EntityDbpediaMapping> index = dbpediaMappingsGenerator.getIndex();
+		dbpediaMappingsGenerator.printStatistics();
+
+		// writeToFile
+		String filepath = OUTPUT_PATH + Helper.getTimeStamp() + DBPEDIA_MAPPING_FILE;
+		index.writeToFile(filepath, logger);
+
+		long endTime = System.nanoTime();
+		long duration = (endTime - startTime) / 1000000;
+		logger.info("Finished creation of DBpedia mappings (" + duration + " ms). File at " + filepath);
 	}
 
 }
