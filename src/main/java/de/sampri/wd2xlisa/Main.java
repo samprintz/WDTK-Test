@@ -467,7 +467,7 @@ public class Main {
 		entityTimerProcessor.close();
 
 		Index<EntityDbpediaMapping> index = dbpediaMappingsGenerator.getIndex();
-		dbpediaMappingsGenerator.printStatistics();
+		dbpediaMappingsGenerator.logStatus();
 
 		// writeToFile
 		String filepath = OUTPUT_PATH + Helper.getTimeStamp() + DBPEDIA_MAPPING_FILE;

@@ -96,13 +96,9 @@ public class DbpediaMappingsGenerator implements EntityDocumentProcessor {
 		}
 	}
 
-	private void logStatus() {
+	public void logStatus() {
 		logger.info("Processed " + itemCount + " items, added " + itemIndexedCount + " to index ("
 				+ (itemIndexedCount - itemMappedCount) + " of them had no DBpedia URL).");
-	}
-
-	public void printStatistics() {
-		logStatus();
 	}
 
 	private String getDbpediaUrl(String pageTitle) {
